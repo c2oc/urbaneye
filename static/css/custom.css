@@ -1,0 +1,100 @@
+.modal {
+    transition: opacity 0.10s ease;
+}
+/* nav and forms button style */
+.buttRect {
+    stroke-width: 0.3rem;
+    fill: transparent;
+    stroke: #f3eff5;
+    stroke-dasharray: 85 400;
+    stroke-dashoffset: -137;
+    transition: 0.7s all ease;
+}
+
+.buttonContainer:hover .buttRect {
+    stroke-dasharray: 150 0;
+    stroke-dashoffset: 0;
+    stroke-width: 0.25rem;
+    stroke: #f9a620;
+}
+/* end button style */
+@-webkit-keyframes progressbar {
+    0% {
+      width: 0;
+    }
+    100% {
+      width: 100%;
+    }
+  }
+@-moz-keyframes progressbar {
+0% {
+    width: 0;
+}
+
+100% {
+    width: 100%;
+}
+}
+.progressAnimated {
+-webkit-animation: progressbar 1s ease-in-out;
+-webkit-animation-fill-mode: both;
+-moz-animation: progressbar 1s ease-in-out;
+-moz-animation-fill-mode: both;
+}
+
+@keyframes loader-rotate {
+    0% {
+        transform: rotate(0);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+.loader {
+    border-right-color: transparent;
+    animation: loader-rotate 1s linear infinite;
+}
+/* mobile menu */
+.hamburger {
+    cursor: pointer;
+    width: 48px;
+    height: 48px;
+    transition: all 0.25s;
+}
+
+.hamburger__top-bun,
+.hamburger__mid-bun,
+.hamburger__bottom-bun {
+    content: '';
+    position: absolute;
+    width: 24px;
+    height: 2px;
+    transform: rotate(0);
+    transition: all 0.5s;
+}
+
+.hamburger__top-bun {
+    transform: translateY(-5px);
+}
+
+.hamburger__bottom-bun {
+    transform: translateY(3px);
+}
+
+.open {
+    transform: rotate(90deg);
+}
+.open .hamburger__mid-bun{
+    display: none;
+}
+.open .hamburger__top-bun {
+    transform:
+            rotate(45deg)
+            translateY(0px);
+}
+
+.open .hamburger__bottom-bun {
+    transform:
+            rotate(-45deg)
+            translateY(0px);
+}
