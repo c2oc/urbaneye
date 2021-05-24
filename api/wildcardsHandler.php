@@ -1,19 +1,19 @@
 <?php
-    require("dbconn.php");
-    $db = dbconn();
+    require("dbConn.php");
+    $db = db_connection();
     $isReview = $_POST["isReview"];
     $alreadyGenerated = $_POST["alreadyGenerated"];
     $toGenerate = $_POST["toGenerate"];
 
     if ($isReview) {
         $sql = "
-                SELECT RE.reviewCreation, CI.cityID, CI.countryID, RE.userID, U.userName, U.userPropic, CI.cityName, CO.countryName, (AVG(reviewTaxes)+AVG(reviewEnvironment)+AVG(reviewCOL)+AVG(reviewSecurity))/4 as overallScore
-                FROM cities as CI
-                JOIN countries CO ON CI.countryID = CO.countryID
-                JOIN reviews RE ON CI.cityID = RE.cityID
-                JOIN users U on RE.userID = U.userID
-                GROUP BY RE.reviewCreation
-                ORDER BY RE.reviewCreation DESC
+                SELECT reviewCreation, cityID, cityCountryID, reviewUserID, userUsername, userPropic, cityName, countryName, (AVG(reviewTaxes)+AVG(reviewEnvironment)+AVG(reviewCOL)+AVG(reviewSecurity))/4 as overallScore
+                FROM Cities
+                JOIN Countries ON cityCountryID = countryID
+                JOIN Reviews ON cityID = reviewCityID
+                JOIN Users on reviewUserID = userID
+                GROUP BY reviewCreated_at
+                ORDER BY reviewCreated_at DESC
                 LIMIT 5
                 ";
         $reviewsDump = array();
@@ -24,11 +24,11 @@
         $reviewsDump = null;
     } else {
         $sql = '
-            SELECT CI.cityID, CI.cityImage, CI.cityName, CO.countryName, AVG(reviewTaxes) as overallTaxes, AVG(reviewEnvironment) as overallEnvironment, AVG(reviewCOL) AS overallCOL, AVG(reviewSecurity) AS overallSecurity, (AVG(reviewTaxes)+AVG(reviewEnvironment)+AVG(reviewCOL)+AVG(reviewSecurity))/4 as overallScore
-            FROM cities as CI
-            JOIN countries CO ON CI.countryID = CO.countryID
-            LEFT JOIN reviews RE ON CI.cityID = RE.cityID
-            GROUP BY CI.cityID
+            SELECT cityID, cityImage, countryName, countryName, AVG(reviewTaxes) as overallTaxes, AVG(reviewEnvironment) as overallEnvironment, AVG(reviewCOL) AS overallCOL, AVG(reviewSecurity) AS overallSecurity, (AVG(reviewTaxes)+AVG(reviewEnvironment)+AVG(reviewCOL)+AVG(reviewSecurity))/4 as overallScore
+            FROM Cities
+            JOIN Countries ON cityCountryID = countryID
+            LEFT JOIN reviews ON cityID = reviewCityID
+            GROUP BY cityID
             ORDER BY overallScore DESC
             LIMIT ?, ?
             ';

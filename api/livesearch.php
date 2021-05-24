@@ -1,11 +1,11 @@
 <?php
-    require("dbconn.php");
+    require("dbConn.php");
     $searchData = $_POST["searchData"];
-    $db = dbconn();
+    $db = db_connection();
     $sql = '
-        SELECT cityName, cityID, "city" as type FROM cities WHERE cityName LIKE CONCAT(?,"%")
+        SELECT cityName, cityID, "city" as type FROM Cities WHERE cityName LIKE CONCAT(?,"%")
         UNION ALL 
-        SELECT countryName, countryID, "country" as type FROM countries WHERE countryName LIKE CONCAT(?,"%")
+        SELECT countryName, countryID, "country" as type FROM Countries WHERE countryName LIKE CONCAT(?,"%")
         LIMIT 5
     ';
       $res = $db->prepare($sql);

@@ -1,13 +1,13 @@
 <?php
-    require("dbconn.php");
-    $db = dbconn();
+    require("dbConn.php");
+    $db = db_connection();
     session_start();
     $pageRequested = $_POST["pageRequested"];
     $username = $_SESSION["userSession"];
     if ($pageRequested == "user-drop") {
         if (!isset($_SESSION["userData"])) {
             $sql = "
-                SELECT userMail, userName, userPropic FROM users WHERE userName = ?
+                SELECT userMail, userUsername, userPropic FROM Users WHERE userUsername = ?
             ";
             $res = $db->prepare($sql);
             $res->execute(array($username));

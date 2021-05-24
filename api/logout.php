@@ -13,13 +13,16 @@
 
     That's right, "son"
     */
-    $u = $_SESSION["user"];
-    $cart = $_SESSION["cart"][$u];
-  // Unset the session variables.
-    session_unset();
-    session_start();
-    $_SESSION["cart"][$u] = $cart;
-    $u = null;
-    $cart = null;
-echo json_encode(array('logout' =>1));
+    $_SESSION = array();
+    if (ini_get("session.use_cookies")) {
+        $params = session_get_cookie_params();
+        setcookie(session_name(), '', time() - 42000,
+            $params["path"], $params["domain"],
+            $params["secure"], $params["httponly"]
+        );
+    }
+
+    // Finally, destroy the session.
+    session_destroy();
+    echo json_encode(array('logout' =>1));
   
