@@ -27,7 +27,7 @@
             SELECT cityID, cityImage, countryName, countryName, AVG(reviewTaxes) as overallTaxes, AVG(reviewEnvironment) as overallEnvironment, AVG(reviewCOL) AS overallCOL, AVG(reviewSecurity) AS overallSecurity, (AVG(reviewTaxes)+AVG(reviewEnvironment)+AVG(reviewCOL)+AVG(reviewSecurity))/4 as overallScore
             FROM Cities
             JOIN Countries ON cityCountryID = countryID
-            LEFT JOIN reviews ON cityID = reviewCityID
+            LEFT JOIN Reviews ON cityID = reviewCityID
             GROUP BY cityID
             ORDER BY overallScore DESC
             LIMIT ?, ?

@@ -214,6 +214,9 @@ function cityWildcardGen(n_gen, n_max, data) {
     let clone = null;
     let overallScores = [];
     let isTrending = 0;
+    if (n_max > data.length){
+        n_max = data.length;
+    }
     for (let i = 0; i < n_max; i++) {
         overallScores = [data[i][2][0], data[i][2][1], data[i][2][2], data[i][2][3], data[i][2][4]]; // taxes, environment, security, col, overall score
         clone = document.querySelector("#single-city").cloneNode(true);
