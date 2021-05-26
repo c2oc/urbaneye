@@ -8,6 +8,9 @@
     <script src="../static/js/main.js"></script>
     <script src="../static/js/jquery-3.6.0-min.js"></script>
     <script>
+        if (!isLogged()){
+            window.location.href = "../index.html";
+        }
         $(document, '.modal-overlay').click(function() {
             if ($('#profile-drop').is(':visible')) {
                 $('#profile-drop').hide();
@@ -29,12 +32,12 @@
         $(document).ready(function() {
             let generated = 0, toGenerate = 28, lastGeneration = new Date().getTime();
             $('#live-search').val('');
-            isLogged();            liveSearch(5);
+            isLogged();
+            liveSearch(5);
             $.when(favouritesHandler(generated, toGenerate)).done(function(){
                 $("#web-loader").hide("slow");
             });
             generated += toGenerate;
-            if (generated < data.length) {
                 $(window).on("scroll", () => {
                     console.log(generated);
                     let t = new Date().getTime();
@@ -45,13 +48,12 @@
                             lastGeneration = t;
                             $('#cards-loader').show("fast");
                             $.when(favouritesHandler(generated, toGenerate)).done(function(){
-                                $("#web-loader").hide("slow");
+                                $("#cards-loader").hide("slow");
                             });
                             generated += toGenerate;
                         }
                     }
                 });
-            }
             $('#profile-drop, #user-profile, #login-nav, #login-form, #signup-form').click(function (evt) {
                 evt.stopPropagation();
             });
@@ -229,10 +231,12 @@
                                 </svg>
                             </div>
                             <div class="pl-3">
-                                <p class="text-sm font-medium leading-none">
-                                    <a href="">Favourites</a>
-                                </p>
-                                <p class="text-xs text-gray-300">The cities you love</p>
+                                <a href="">
+                                    <p class="text-sm font-medium leading-none">
+                                        Favourites
+                                    </p>
+                                    <p class="text-xs text-gray-300">The cities you love</p>
+                                </a>
                             </div>
                         </a>
                     </div>

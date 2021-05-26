@@ -6,11 +6,11 @@ function isLogged() {
 
         success: function(response) {
             if (JSON.parse(response).usersession) {
-                document.querySelector("#login-nav").style.display = "none";
-                document.querySelector("#user-profile").style.display = "inherit";
-            } else {
-                  document.querySelector("#login-nav").style.display = "inline-block";
+                loggedIn();
+                return 1;
             }
+            document.querySelector("#login-nav").style.display = "inline-block";
+            return 0;
         }
     });
 }
@@ -83,7 +83,7 @@ function favouritesHandler(generated, toGenerate){
     return $.ajax({
         type: "post",
         url: "/../api/userHandler.php",
-        data: {pageRequested: "favourites", alreadyGenerated: generated, toGenerate: toGenerate},
+        data: {pageRequested: "favourites", alreadyGenerated: generated, toGenerate: generated+toGenerate},
         success: function (response) {
             cityWildcardGen(generated, JSON.parse(response).favourites);
         },

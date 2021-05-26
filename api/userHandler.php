@@ -20,7 +20,6 @@
         LIMIT ?, ?
     ";
         $res = $db->prepare($sql);
-        echo $_SESSION["userSession"];
         $res->bindParam(1, $_SESSION['userSession']);
         $res->bindParam(2, $alreadyGenerated, PDO::PARAM_INT);
         $res->bindParam(3, $toGenerate, PDO::PARAM_INT);
