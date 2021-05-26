@@ -88,7 +88,7 @@ function userDropHandler(){
             const drop = document.querySelector("#profile-drop");
             drop.querySelector("#drop-username").innerHTML = JSON.parse(response).username;
             drop.querySelector("#drop-email").innerHTML = JSON.parse(response).email;
-            drop.querySelector("#drop-propic").src = "assets/img/users/" + JSON.parse(response).propic;
+            drop.querySelector("#drop-propic").src = "../assets/img/users/" + JSON.parse(response).propic;
         },
         error: function () {
             console.log("JSON error: couldn't reach the server (user-drop)")
@@ -218,7 +218,7 @@ function cityWildcardGen(n_gen, data) {
         overallScores = [data[i][2][0], data[i][2][1], data[i][2][2], data[i][2][3], data[i][2][4]]; // taxes, environment, security, col, overall score
         clone = document.querySelector("#single-city").cloneNode(true);
         clone.setAttribute('id', "city-gen-" + (n_gen+i));
-        clone.querySelector("#city-bg").src = "assets/img/cities/" + data[i][3];
+        clone.querySelector("#city-bg").src = "../assets/img/cities/" + data[i][3];
         clone.querySelector("#city-page").href = "../pages/result.php?q=" + data[i][4] + "&t=city";
         clone.querySelector("#city-shadow-bg").setAttribute('id', "city-shadow-bg-" + (n_gen+i));
         clone.querySelector("#city-info").setAttribute('id', "city-info-" + (n_gen+i));

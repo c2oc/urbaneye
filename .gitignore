@@ -120,3 +120,5 @@ components/
 package.json
 package-lock.json
 api/dbConn.php
+/tailwind.config.js
+README.md
