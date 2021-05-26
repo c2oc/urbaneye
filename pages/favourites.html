@@ -1,50 +1,8 @@
-<?php
-
-if (empty($_GET["q"])){
-    header("location:index.html");
-}
-require("../api/dbConn.php");
-$db = db_connection();
-$type = $_GET["t"];
-$searchQuery = $_GET["q"];
-$results = array();
-if ($type == "city"){
-    $sql = "
-        SELECT cityID, cityImage, cityName, countryName, AVG(reviewTaxes) as overallTaxes, AVG(reviewEnvironment) as overallEnvironment, AVG(reviewCOL) AS overallCOL, AVG(reviewSecurity) AS overallSecurity, (AVG(reviewTaxes)+AVG(reviewEnvironment)+AVG(reviewCOL)+AVG(reviewSecurity))/4 as overallScore
-        FROM Cities
-        JOIN Countries ON cityCountryID = countryID
-        LEFT JOIN Reviews ON cityID = reviewCityID
-        WHERE cityID = ?
-    ";
-    $res = $db->prepare($sql);
-    $res->execute(array($searchQuery));
-    $r = $res->fetch(PDO::FETCH_ASSOC);
-    $results[] = [$r["cityName"], $r["countryName"], [isNull($r["overallTaxes"]), isNull($r["overallEnvironment"]), isNull($r["overallSecurity"]), isNull($r["overallCOL"]), isNull($r["overallScore"])], $r["cityImage"], $r["cityID"]];
-
-} else {
-    $sql = "
-        SELECT cityID, cityImage, cityName, countryName, AVG(reviewTaxes) as overallTaxes, AVG(reviewEnvironment) as overallEnvironment, AVG(reviewCOL) AS overallCOL, AVG(reviewSecurity) AS overallSecurity, (AVG(reviewTaxes)+AVG(reviewEnvironment)+AVG(reviewCOL)+AVG(reviewSecurity))/4 as overallScore
-        FROM Countries
-        JOIN Cities ON countryID = cityCountryID
-        LEFT JOIN Reviews ON reviewCityID = cityID
-        WHERE countryID = ?
-        GROUP BY cityID
-        ORDER BY overallScore DESC
-    ";
-    $res = $db->prepare($sql);
-    $res->execute(array($searchQuery));
-    $res = $res->fetchAll(PDO::FETCH_ASSOC);
-    foreach ($res as $r){
-        $results[] = [$r["cityName"], $r["countryName"], [isNull($r["overallTaxes"]), isNull($r["overallEnvironment"]), isNull($r["overallSecurity"]), isNull($r["overallCOL"]), isNull($r["overallScore"])], $r["cityImage"], $r["cityID"]];
-    }
-}
-$db = null;
-?>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title><?php if ($type == "city"){ echo $results[0][0]; } else { echo $results[0][1]; } ?> - Urbaneye</title>
+    <title>Favourites - Urbaneye</title>
     <link rel="stylesheet" href="../static/css/output.css">
     <link rel="stylesheet" href="../static/css/custom.css">
     <script src="../static/js/main.js"></script>
@@ -69,14 +27,15 @@ $db = null;
             }
         });
         $(document).ready(function() {
-            let generated = 0, lastGeneration = new Date().getTime();
-            const data = <?php echo json_encode($results); ?>, toGenerate = <?php if ($type == "city"){echo 1;}else{ echo 28;}?>;
+            let generated = 0, toGenerate = 28, lastGeneration = new Date().getTime();
             $('#live-search').val('');
             isLogged();
             login();
             signup();
             liveSearch(5);
-            cityWildcardGen(generated, data.slice(generated, toGenerate));
+            $.when(favouritesHandler(generated, toGenerate)).done(function(){
+                $("#web-loader").hide("slow");
+            });
             generated += toGenerate;
             if (generated < data.length) {
                 $(window).on("scroll", () => {
@@ -87,11 +46,11 @@ $db = null;
                     if (scrollHeight - 300 < scrollPos) {
                         if (t > lastGeneration + 650) {
                             lastGeneration = t;
-                            $('#cards-loader').hide("fast");
-                            cityWildcardGen(generated, toGenerate, data.slice(generated, generated+toGenerate));
-                            generated += toGenerate;
-                        } else {
                             $('#cards-loader').show("fast");
+                            $.when(favouritesHandler(generated, toGenerate)).done(function(){
+                                $("#web-loader").hide("slow");
+                            });
+                            generated += toGenerate;
                         }
                     }
                 });
@@ -103,7 +62,9 @@ $db = null;
     </script>
 </head>
 <body>
-
+<div id="web-loader" class="absolute w-full h-full z-50 bg-custom-eerie">
+    <div class="relative top-2/4 left-2/4 w-48 h-48 border-8 border-custom-cayola rounded-full loader"></div>
+</div>
 <div class="w-full text-gray-200">
     <div class="flex flex-col max-w-screen-2xl px-4 mx-auto lg:items-center lg:justify-between lg:flex-row md:px-6 lg:px-8">
         <div class="p-4 flex flex-row items-center justify-between">
@@ -196,23 +157,6 @@ $db = null;
                     <a href="#" class="relative -top-2/4 flex justify-center uppercase text-lightText text-sm not-sr-only"
                     >Compare</a>
                 </div>
-                <div id="login-nav" style="display: none;">
-                    <div class="invisible lg:visible buttonContainer w-28">
-                        <svg viewBox="0 0 100 30" xmlns="http://www.w3.org/2000/svg">
-                            <rect class="buttRect" height="30" width="100"></rect>
-                        </svg>
-                        <a class="relative -top-2/4 flex justify-center uppercase text-lightText text-sm not-sr-only cursor-pointer" onclick="$('#login').show('fast')">Login</a>
-                    </div>
-                    <div class="visible lg:invisible">
-                        <button class="focus:outline-none absolute right-5 -top-2/4 md:-top-24 md:right-16" onclick="$('#login').show('fast')">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" stroke-width="1.5" stroke="#F3EFF5" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                                <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-                                <path d="M14 8v-2a2 2 0 0 0 -2 -2h-7a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2 -2v-2" />
-                                <path d="M20 12h-13l3 -3m0 6l-3 -3" />
-                            </svg>
-                        </button>
-                    </div>
-                </div>
                 <button id="user-profile" class="visible focus:outline-none absolute right-5 lg:relative lg:right-auto lg:top-auto md:top-7 md:right-16" onclick="userDrop()" style="display: none">
                     <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" stroke-width="1.5" stroke="#F3EFF5" fill="none" stroke-linecap="round" stroke-linejoin="round">
                         <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
@@ -225,10 +169,10 @@ $db = null;
                 <div class="bg-custom-dark rounded overflow-hidden shadow-lg">
                     <div class="text-center p-6 border-b">
                         <img
-                                id="drop-propic"
-                                class="h-24 w-24 rounded-full mx-auto"
-                                src="../assets/img/cities/default.jpg"
-                                alt="profile picture"
+                            id="drop-propic"
+                            class="h-24 w-24 rounded-full mx-auto"
+                            src="../assets/img/cities/default.jpg"
+                            alt="profile picture"
                         />
                         <p id="drop-username" class="pt-2 text-lg font-semibold"></p>
                         <p id="drop-email" class="text-sm text-gray-300"></p>
@@ -237,13 +181,13 @@ $db = null;
                         <a href="#" class="px-4 py-2 hover:bg-gray-700 flex">
                             <div>
                                 <svg
-                                        fill="none"
-                                        stroke="currentColor"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="1"
-                                        viewBox="0 0 24 24"
-                                        class="w-5 h-5"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="1"
+                                    viewBox="0 0 24 24"
+                                    class="w-5 h-5"
                                 >
                                     <path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                                     <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -257,13 +201,13 @@ $db = null;
                         <a href="#" class="px-4 py-2 hover:bg-gray-700 flex">
                             <div>
                                 <svg
-                                        fill="none"
-                                        stroke="currentColor"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="1"
-                                        viewBox="0 0 24 24"
-                                        class="w-5 h-5"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="1"
+                                    viewBox="0 0 24 24"
+                                    class="w-5 h-5"
                                 >
                                     <path d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
@@ -276,19 +220,19 @@ $db = null;
                         <a href="#" class="px-4 py-2 hover:bg-gray-700 flex">
                             <div>
                                 <svg
-                                        fill="none"
-                                        stroke="currentColor"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="1"
-                                        viewBox="0 0 24 24"
-                                        class="w-5 h-5"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="1"
+                                    viewBox="0 0 24 24"
+                                    class="w-5 h-5"
                                 >
                                     <path d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
                                 </svg>
                             </div>
                             <div class="pl-3">
-                                <a href="favourites.html" class="text-sm font-medium leading-none">
+                                <a href="" class="text-sm font-medium leading-none">
                                     Favourites
                                 </a>
                                 <p class="text-xs text-gray-300">The cities you love</p>
@@ -317,8 +261,8 @@ $db = null;
                     </svg>
 
                     <a
-                            class="px-4 py-2 mt-2 text-md text-lightText focus:outline-none focus:shadow-outline"
-                            href="./index.html"
+                        class="px-4 py-2 mt-2 text-md text-lightText focus:outline-none focus:shadow-outline"
+                        href="./index.html"
                     >Home</a>
                 </div>
                 <div class="grid justify-items-center relative -top-2">
@@ -329,8 +273,8 @@ $db = null;
                         <path d="M3 13v3a2 2 0 0 0 2 2h6l-3 -3m0 6l3 -3" />
                     </svg>
                     <a
-                            class="active:bg-red-200 px-4 py-2 mt-2 text-md text-lightText focus:outline-none focus:shadow-outline"
-                            href="#"
+                        class="active:bg-red-200 px-4 py-2 mt-2 text-md text-lightText focus:outline-none focus:shadow-outline"
+                        href="#"
                     >Compare</a>
                 </div>
 
@@ -339,284 +283,156 @@ $db = null;
                         <path d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
                     </svg>
                     <a
-                            class="active:bg-red-200 px-4 py-2 mt-2 text-md text-lightText focus:outline-none focus:shadow-outline"
-                            href="#"
+                        class="active:bg-red-200 px-4 py-2 mt-2 text-md text-lightText focus:outline-none focus:shadow-outline"
+                        href="#"
                     >Favourites</a>
                 </div>
             </div>
         </div>
     </nav>
 </div>
-<div id="login" class="modal z-40 absolute w-full h-full top-0 left-0 flex items-center justify-center" style="display: none">
-    <div class="modal-overlay absolute w-full h-full bg-black opacity-25 top-0 left-0 cursor-pointer z-0"></div>
-    <div class="absolute flex flex-col bg-custom-dark shadow-lg px-4 sm:px-6 md:px-8 lg:px-10 py-8 rounded-md w-full max-w-md">
-        <div class="font-medium self-center text-xl sm:text-2xl uppercase">Login To Your Account</div>
-        <div class="mt-10">
-            <form id="login-form" method="post">
-                <div class="flex flex-col mb-6">
-                    <label for="username" class="mb-1 text-xs sm:text-sm tracking-wide">Username</label>
-                    <div class="relative">
-                        <div class="inline-flex items-center justify-center absolute left-0 top-0 h-full w-10">
-                            <svg class="h-6 w-6" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
-                                <path d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
-                            </svg>
-                        </div>
-
-                        <input id="username" required="required" type="text" name="username" class="text-sm sm:text-base pl-10 pr-4 rounded-lg bg-custom-eerie w-full py-2 focus:outline-none" />
-                    </div>
-                </div>
-                <div class="flex flex-col mb-6">
-                    <label for="password" class="mb-1 text-xs sm:text-sm tracking-wide">Password</label>
-                    <div class="relative">
-                        <div class="inline-flex items-center justify-center absolute left-0 top-0 h-full w-10">
-              <span>
-                <svg class="h-6 w-6" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
-                  <path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                </svg>
-              </span>
-                        </div>
-
-                        <input id="password" required="required" type="password" name="password" class="text-sm sm:text-base pl-10 pr-4 rounded-lg   bg-custom-eerie w-full py-2 focus:outline-none"/>
-                    </div>
-                </div>
-                <div class="flex items-center mb-6 -mt-4">
-                    <div id="incorrectDataLogin" class="text-custom-warning text-sm" style="display: none">Incorrect login data!</div>
-
-                    <div class="flex ml-auto">
-                        <a href="#" class="inline-flex text-xs sm:text-sm hover:text-custom-evil-cayola">Forgot Your Password?</a>
-                    </div>
-                </div>
-                <div class="flex w-full">
-                    <button type="submit" class="flex items-center justify-center focus:outline-none text-custom-ghost text-sm sm:text-base bg-custom-cayola hover:bg-custom-evil-cayola rounded py-2 w-full transition duration-150 ease-in" onclick="login()">
-                        <span class="mr-2 uppercase">Log In</span>
-                        <span>
-                                  <svg class="h-6 w-6" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path d="M13 9l3 3m0 0l-3 3m3-3H8m13 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                  </svg>
-                                </span>
-                    </button>
-                </div>
-            </form>
-        </div>
-        <div class="flex justify-center items-center mt-6">
-            <a onclick="$('#signup').show()" class="inline-flex items-center font-bold text-custom-ghost hover:text-custom-evil-cayola text-xs text-center">
-        <span>
-          <svg class="h-6 w-6" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
-            <path d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-          </svg>
-        </span>
-                <span class="ml-2 cursor-pointer">You don't have an account?</span>
-            </a>
-        </div>
-    </div>
-</div>
-
-<div id="signup" class="modal z-50 absolute w-full h-full top-0 left-0 flex items-center justify-center" style="display: none;">
-    <div class="modal-overlay absolute w-full h-full bg-black opacity-25 top-0 left-0 cursor-pointer"></div>
-    <div class="absolute flex flex-col bg-custom-dark shadow-lg px-4 sm:px-6 md:px-8 lg:px-10 py-8 rounded-md w-full max-w-md">
-        <div class="font-medium self-center text-xl sm:text-2xl uppercase">Join us!</div>
-        <div class="mt-10">
-            <form id="signup-form" method="post">
-                <div class="flex flex-col mb-6">
-                    <label for="username-su" class="mb-1 text-xs sm:text-sm tracking-wide">Username</label>
-                    <div class="relative">
-                        <div class="inline-flex items-center justify-center absolute left-0 top-0 h-full w-10">
-                            <svg class="h-6 w-6" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
-                                <path d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
-                            </svg>
-                        </div>
-
-                        <input id="username-su" required="required" type="text" name="username" class="text-sm sm:text-base pl-10 pr-4 rounded-lg bg-custom-eerie w-full py-2 focus:outline-none" />
-                    </div>
-                    <div id="takenUsername" class="text-custom-warning text-sm" style="display: none">This username is already taken</div>
-                </div>
-                <div class="flex flex-col mb-6">
-                    <label for="password-su" class="mb-1 text-xs sm:text-sm tracking-wide">Password</label>
-                    <div class="relative">
-                        <div class="inline-flex items-center justify-center absolute left-0 top-0 h-full w-10">
-            <span>
-              <svg class="h-6 w-6" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
-                <path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-              </svg>
-            </span>
-                        </div>
-
-                        <input id="password-su" required="required" type="password" name="password" class="text-sm sm:text-base pl-10 pr-4 rounded-lg   bg-custom-eerie w-full py-2 focus:outline-none"/>
-                    </div>
-                </div>
-                <div class="flex flex-col mb-6">
-                    <label for="email" class="mb-1 text-xs sm:text-sm tracking-wide">Email</label>
-                    <div class="relative">
-                        <div class="inline-flex items-center justify-center absolute left-0 top-0 h-full w-10">
-                            <svg class="h-6 w-6" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
-                                <path d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
-                            </svg>
-                        </div>
-
-                        <input id="email" required="required" type="email" name="email" class="text-sm sm:text-base pl-10 pr-4 rounded-lg bg-custom-eerie w-full py-2 focus:outline-none" />
-                    </div>
-                    <div id="takenMail" class="text-custom-warning text-sm" style="display: none">This mail is already taken</div>
-                </div>
-                <div class="flex items-center mb-6 -mt-4">
-                    <div class="flex ml-auto">
-                    </div>
-                </div>
-                <div class="flex w-full">
-                    <button type="submit" class="flex items-center justify-center focus:outline-none text-custom-ghost text-sm sm:text-base bg-custom-cayola hover:bg-custom-evil-cayola rounded py-2 w-full transition duration-150 ease-in" onclick="signup()">
-                        <span class="mr-2 uppercase">Sign Up</span>
-                        <span>
-          <svg class="h-6 w-6" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
-            <path d="M13 9l3 3m0 0l-3 3m3-3H8m13 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        </span>
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
 <div class="grid justify-center">
     <div class="container sm:m-20">
         <h1 class="not-sr-only">
-            <?php if ($type == "city"){ echo $results[0][0], ' in ', $results[0][1]; } else { echo $results[0][1]; } ?>
+            Favourites
         </h1>
     </div>
-<div class="flex justify-center">
-    <div id="cities-section" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-9 gap-5">
-        <div id="single-city" class="relative object-cover select-none shadow-wildcard rounded-xl cursor-pointer w-44 h-40 md:w-60 md:h-64" style="display:none">
-            <a id="city-page" href="">
-            <img id="city-bg" class="z-0 absolute h-full w-auto rounded-xl object-cover" src="" alt="city image">
-            <div id="city-shadow-bg" class="z-1 absolute h-full w-full object-fill bg-custom-eerie opacity-40"></div>
-            <!-- wildcard is hovered -->
-            <div id="grade-progress" class="z-10 relative text-lightText flex flex-col h-full justify-around" style="display:none;" onmouseover="cityWildcardHovered(this.id, true)" onmouseleave="cityWildcardHovered(this.id, false)">
-                <div class="m-5 flex flex-col w-auto h-auto justify-items-stretch">
-                    <h5 class="not-sr-only">Taxes</h5>
-                    <div class="h-3 relative max-w-xl rounded-full overflow-hidden progressAnimated">
-                        <div class="w-full h-full bg-gray-500 opacity-20 absolute"></div>
-                        <div id="overall-taxes" class="relative h-full bg-green-500">
-                            <span class="sr-only">{{ overallTaxes + '%' }}</span>
+    <div class="flex justify-center">
+        <div id="cities-section" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-9 gap-5">
+            <div id="single-city" class="relative object-cover select-none shadow-wildcard rounded-xl cursor-pointer w-44 h-40 md:w-60 md:h-64" style="display:none">
+                <a id="city-page" href="">
+                    <img id="city-bg" class="z-0 absolute h-full w-auto rounded-xl object-cover" src="" alt="city image">
+                    <div id="city-shadow-bg" class="z-1 absolute h-full w-full object-fill bg-custom-eerie opacity-40"></div>
+                    <!-- wildcard is hovered -->
+                    <div id="grade-progress" class="z-10 relative text-lightText flex flex-col h-full justify-around" style="display:none;" onmouseover="cityWildcardHovered(this.id, true)" onmouseleave="cityWildcardHovered(this.id, false)">
+                        <div class="m-5 flex flex-col w-auto h-auto justify-items-stretch">
+                            <h5 class="not-sr-only">Taxes</h5>
+                            <div class="h-3 relative max-w-xl rounded-full overflow-hidden progressAnimated">
+                                <div class="w-full h-full bg-gray-500 opacity-20 absolute"></div>
+                                <div id="overall-taxes" class="relative h-full bg-green-500">
+                                    <span class="sr-only">{{ overallTaxes + '%' }}</span>
+                                </div>
+                            </div>
+                            <h5 class="not-sr-only">Cost of Life</h5>
+                            <div class="h-3 relative max-w-xl rounded-full overflow-hidden progressAnimated">
+                                <div class="w-full h-full bg-gray-300 opacity-20 absolute"></div>
+                                <div id="overall-col" class="relative h-full bg-green-500">
+                                    <span class="sr-only">{{ overallCoL + '%' }}</span>
+                                </div>
+                            </div>
+                            <h5 class="not-sr-only">Environment</h5>
+                            <div class="h-3 relative max-w-xl rounded-full overflow-hidden progressAnimated">
+                                <div class="w-full h-full bg-gray-500 opacity-25 absolute"></div>
+                                <div id="overall-environment" class="relative h-full bg-green-500">
+                                    <span class="sr-only">{{ overallEnvironment + '%' }}%</span>
+                                </div>
+                            </div>
+                            <h5 class="not-sr-only">Security</h5>
+                            <div class="h-3 relative max-w-xl rounded-full overflow-hidden progressAnimated">
+                                <div class="w-full h-full bg-gray-500 opacity-25 absolute"></div>
+                                <div id="overall-security" class="relative h-full bg-green-500">
+                                    <span class="sr-only">{{ overallSecurity + '%' }}%</span>
+                                </div>
+                            </div>
+                            <div class="relative left-1/4 top-1 md:invisible">
+                                <button class="bg-red-600 rounded-xl w-16 h-4 uppercase">
+                                    <span class="not-sr-only">Go!</span>
+                                </button>
+                            </div>
+                            <!-- remember remember, this button is for mobile -->
                         </div>
                     </div>
-                    <h5 class="not-sr-only">Cost of Life</h5>
-                    <div class="h-3 relative max-w-xl rounded-full overflow-hidden progressAnimated">
-                        <div class="w-full h-full bg-gray-300 opacity-20 absolute"></div>
-                        <div id="overall-col" class="relative h-full bg-green-500">
-                            <span class="sr-only">{{ overallCoL + '%' }}</span>
+                    <!-- wildcard is NOT Hovered -->
+                    <div id="city-info" class="z-10 relative text-lightText flex flex-col h-full justify-around" onmouseover="cityWildcardHovered(this.id, true)" onmouseleave="cityWildcardHovered(this.id, false)">
+                        <div class="flex justify-between">
+                            <!-- adds a blank space so that the overall score will always be on the right. DO NOT REMOVE! -->
+                            <div id="notTrending"></div>
+                            <div id="isTrending" class="relative left-1.5 bg-custom-red rounded-3xl w-20 h-4 top-2 md:top-auto">
+                                <h4 class="uppercase text-xs text-center">
+                                    <b class="not-sr-only">Trending</b>
+                                </h4>
+                            </div>
+                            <div class="relative right-2.5 text-center md:-top-1.5">
+                                <span class="sr-only">Overall Score:</span>
+                                <h5 id="overall-score" class="not-sr-only" style="font-family: 'Open Sans', serif">
+                                </h5>
+                                <svg class="relative -top-1" width="25" height="1" viewBox="0 0 25 1" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <line
+                                        id="overall-score-line"
+                                        y1="0.5"
+                                        x2="25"
+                                        y2="0.5"
+                                    />
+                                </svg>
+                            </div>
+                        </div>
+
+                        <div class="inline-grid text-center">
+                            <h3 id="city-name" class="not-sr-only"></h3>
+                            <h4 id="country-name" class="relative -top-2.5 text-subtitleGray not-sr-only"></h4>
+                        </div>
+
+                        <div class="relative inline-flex left-2.5 md:top-4">
+                            <svg width="32" height="32" viewBox="0 0 24 24" stroke-width="1.5" stroke="#ffffff" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none" class="rainy" style="display:none;" />
+                                <path
+                                    d="M7 18a4.6 4.4 0 0 1 0 -9a5 4.5 0 0 1 11 2h1a3.5 3.5 0 0 1 0 7"
+                                    class="rainy"
+                                    style="display:none;"
+                                />
+                                <path d="M11 13v2m0 3v2m4 -5v2m0 3v2" class="rainy" style="display:none;" />
+                                <!--sunny below, rainy up -->
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none" class="sunny" style="display:none;" />
+                                <circle cx="12" cy="12" r="4" class="sunny" style="display:none;" />
+
+                                <path
+                                    d="M3 12h1m8 -9v1m8 8h1m-9 8v1m-6.4 -15.4l.7 .7m12.1 -.7l-.7 .7m0 11.4l.7 .7m-12.1 -.7l-.7 .7"
+                                    class="sunny"
+                                    style="display:none;"
+                                />
+
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none" class="stormy" style="display:none;" />
+                                <path
+                                    d="M7 18a4.6 4.4 0 0 1 0 -9a5 4.5 0 0 1 11 2h1a3.5 3.5 0 0 1 0 7h-1"
+                                    class="stormy"
+                                    style="display:none;"
+                                />
+                                <polyline points="13 14 11 18 14 18 12 22" class="stormy" style="display:none;" />
+
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none" class="foggy" style="display:none;" />
+                                <path
+                                    d="M7 16a4.6 4.4 0 0 1 0 -9a5 4.5 0 0 1 11 2h1a3.5 3.5 0 0 1 0 7h-12"
+                                    class="foggy"
+                                    style="display:none;"
+                                />
+
+                                <line x1="5" y1="20" x2="19" y2="20" class="foggy" style="display:none;" />
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none" class="snowy" style="display:none;" />
+                                <path
+                                    d="M7 18a4.6 4.4 0 0 1 0 -9a5 4.5 0 0 1 11 2h1a3.5 3.5 0 0 1 0 7"
+                                    class="snowy"
+                                    style="display:none;"
+                                />
+                                <path d="M11 15v.01m0 3v.01m0 3v.01m4 -4v.01m0 3v.01" class="snowy" style="display:none;" />
+
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none" class="cloudy" style="display:none;" />
+                                <path
+                                    d="M7 18a4.6 4.4 0 0 1 0 -9a5 4.5 0 0 1 11 2h1a3.5 3.5 0 0 1 0 7h-12"
+                                    class="cloudy"
+                                    style="display:none;"
+                                />
+                            </svg>
+
+                            <span class="sr-only">The weather is {{ weatherType }}</span>
+                            <h4 id="city-temperature" class="m-1 not-sr-only">
+                                <span class="sr-only">The temperature is </span>
+                            </h4>
                         </div>
                     </div>
-                    <h5 class="not-sr-only">Environment</h5>
-                    <div class="h-3 relative max-w-xl rounded-full overflow-hidden progressAnimated">
-                        <div class="w-full h-full bg-gray-500 opacity-25 absolute"></div>
-                        <div id="overall-environment" class="relative h-full bg-green-500">
-                            <span class="sr-only">{{ overallEnvironment + '%' }}%</span>
-                        </div>
-                    </div>
-                    <h5 class="not-sr-only">Security</h5>
-                    <div class="h-3 relative max-w-xl rounded-full overflow-hidden progressAnimated">
-                        <div class="w-full h-full bg-gray-500 opacity-25 absolute"></div>
-                        <div id="overall-security" class="relative h-full bg-green-500">
-                            <span class="sr-only">{{ overallSecurity + '%' }}%</span>
-                        </div>
-                    </div>
-                    <div class="relative left-1/4 top-1 md:invisible">
-                        <button class="bg-red-600 rounded-xl w-16 h-4 uppercase">
-                            <span class="not-sr-only">Go!</span>
-                        </button>
-                    </div>
-                    <!-- remember remember, this button is for mobile -->
-                </div>
+                </a>
             </div>
-            <!-- wildcard is NOT Hovered -->
-            <div id="city-info" class="z-10 relative text-lightText flex flex-col h-full justify-around" onmouseover="cityWildcardHovered(this.id, true)" onmouseleave="cityWildcardHovered(this.id, false)">
-                <div class="flex justify-between">
-                    <!-- adds a blank space so that the overall score will always be on the right. DO NOT REMOVE! -->
-                    <div id="notTrending"></div>
-                    <div id="isTrending" class="relative left-1.5 bg-custom-red rounded-3xl w-20 h-4 top-2 md:top-auto">
-                        <h4 class="uppercase text-xs text-center">
-                            <b class="not-sr-only">Trending</b>
-                        </h4>
-                    </div>
-                    <div class="relative right-2.5 text-center md:-top-1.5">
-                        <span class="sr-only">Overall Score:</span>
-                        <h5 id="overall-score" class="not-sr-only" style="font-family: 'Open Sans', serif">
-                        </h5>
-                        <svg class="relative -top-1" width="25" height="1" viewBox="0 0 25 1" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <line
-                                    id="overall-score-line"
-                                    y1="0.5"
-                                    x2="25"
-                                    y2="0.5"
-                            />
-                        </svg>
-                    </div>
-                </div>
-
-                <div class="inline-grid text-center">
-                    <h3 id="city-name" class="not-sr-only"></h3>
-                    <h4 id="country-name" class="relative -top-2.5 text-subtitleGray not-sr-only"></h4>
-                </div>
-
-                <div class="relative inline-flex left-2.5 md:top-4">
-                    <svg width="32" height="32" viewBox="0 0 24 24" stroke-width="1.5" stroke="#ffffff" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                        <path stroke="none" d="M0 0h24v24H0z" fill="none" class="rainy" style="display:none;" />
-                        <path
-                                d="M7 18a4.6 4.4 0 0 1 0 -9a5 4.5 0 0 1 11 2h1a3.5 3.5 0 0 1 0 7"
-                                class="rainy"
-                                style="display:none;"
-                        />
-                        <path d="M11 13v2m0 3v2m4 -5v2m0 3v2" class="rainy" style="display:none;" />
-                        <!--sunny below, rainy up -->
-                        <path stroke="none" d="M0 0h24v24H0z" fill="none" class="sunny" style="display:none;" />
-                        <circle cx="12" cy="12" r="4" class="sunny" style="display:none;" />
-
-                        <path
-                                d="M3 12h1m8 -9v1m8 8h1m-9 8v1m-6.4 -15.4l.7 .7m12.1 -.7l-.7 .7m0 11.4l.7 .7m-12.1 -.7l-.7 .7"
-                                class="sunny"
-                                style="display:none;"
-                        />
-
-                        <path stroke="none" d="M0 0h24v24H0z" fill="none" class="stormy" style="display:none;" />
-                        <path
-                                d="M7 18a4.6 4.4 0 0 1 0 -9a5 4.5 0 0 1 11 2h1a3.5 3.5 0 0 1 0 7h-1"
-                                class="stormy"
-                                style="display:none;"
-                        />
-                        <polyline points="13 14 11 18 14 18 12 22" class="stormy" style="display:none;" />
-
-                        <path stroke="none" d="M0 0h24v24H0z" fill="none" class="foggy" style="display:none;" />
-                        <path
-                                d="M7 16a4.6 4.4 0 0 1 0 -9a5 4.5 0 0 1 11 2h1a3.5 3.5 0 0 1 0 7h-12"
-                                class="foggy"
-                                style="display:none;"
-                        />
-
-                        <line x1="5" y1="20" x2="19" y2="20" class="foggy" style="display:none;" />
-                        <path stroke="none" d="M0 0h24v24H0z" fill="none" class="snowy" style="display:none;" />
-                        <path
-                                d="M7 18a4.6 4.4 0 0 1 0 -9a5 4.5 0 0 1 11 2h1a3.5 3.5 0 0 1 0 7"
-                                class="snowy"
-                                style="display:none;"
-                        />
-                        <path d="M11 15v.01m0 3v.01m0 3v.01m4 -4v.01m0 3v.01" class="snowy" style="display:none;" />
-
-                        <path stroke="none" d="M0 0h24v24H0z" fill="none" class="cloudy" style="display:none;" />
-                        <path
-                                d="M7 18a4.6 4.4 0 0 1 0 -9a5 4.5 0 0 1 11 2h1a3.5 3.5 0 0 1 0 7h-12"
-                                class="cloudy"
-                                style="display:none;"
-                        />
-                    </svg>
-
-                    <span class="sr-only">The weather is {{ weatherType }}</span>
-                    <h4 id="city-temperature" class="m-1 not-sr-only">
-                        <span class="sr-only">The temperature is </span>
-                    </h4>
-                </div>
-            </div>
-            </a>
         </div>
     </div>
-</div>
     <div id="cards-loader" class="grid justify-center" style="display: none">
         <div class="relative justify-center w-12 h-12 border-8 border-custom-cayola rounded-full loader"></div>
     </div>

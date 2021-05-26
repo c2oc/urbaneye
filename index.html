@@ -47,11 +47,11 @@
                 if (scrollHeight - 300 < scrollPos) {
                     if (t > lastGeneration + 650){
                         lastGeneration = t;
-                        $('#cards-loader').hide("fast");
-                        cityWildcardHandler(generated, toGenerate);
-                        generated += toGenerate;
-                    } else {
                         $('#cards-loader').show("fast");
+                        $.when(cityWildcardHandler(generated, toGenerate)).done(function(){
+                            $("#web-loader").hide("slow");
+                        });
+                        generated += toGenerate;
                     }
                 }
             });
@@ -249,9 +249,9 @@
                                 </svg>
                             </div>
                             <div class="pl-3">
-                                <p class="text-sm font-medium leading-none">
+                                <a href="pages/favourites.html" class="text-sm font-medium leading-none">
                                     Favourites
-                                </p>
+                                </a>
                                 <p class="text-xs text-gray-300">The cities you love</p>
                             </div>
                         </a>

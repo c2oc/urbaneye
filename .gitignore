@@ -122,3 +122,5 @@ package-lock.json
 api/dbConn.php
 /tailwind.config.js
 README.md
+/assets/img/cities/*
+/assets/img/users/*

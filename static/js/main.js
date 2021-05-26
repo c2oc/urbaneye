@@ -78,6 +78,20 @@ function login (){
         });
     });
 }
+/* Favourites */
+function favouritesHandler(generated, toGenerate){
+    return $.ajax({
+        type: "post",
+        url: "/../api/userHandler.php",
+        data: {pageRequested: "favourites", alreadyGenerated: generated, toGenerate: toGenerate},
+        success: function (response) {
+            cityWildcardGen(JSON.parse(response).favourites);
+        },
+        error: function () {
+            console.log("JSON error: couldn't reach the server")
+        }
+    });
+}
 /* userDrop */
 function userDropHandler(){
     return $.ajax({
