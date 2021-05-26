@@ -6,7 +6,8 @@ if (empty($_GET["q"])){
 require("../api/dbConn.php");
 $db = db_connection();
 $type = $_GET["t"];
-$results = [];
+$searchQuery = $_GET["q"];
+$results = array();
 if ($type == "city"){
     $sql = "
         SELECT cityID, cityImage, cityName, countryName, AVG(reviewTaxes) as overallTaxes, AVG(reviewEnvironment) as overallEnvironment, AVG(reviewCOL) AS overallCOL, AVG(reviewSecurity) AS overallSecurity, (AVG(reviewTaxes)+AVG(reviewEnvironment)+AVG(reviewCOL)+AVG(reviewSecurity))/4 as overallScore
@@ -16,22 +17,22 @@ if ($type == "city"){
         WHERE cityID = ?
     ";
     $res = $db->prepare($sql);
-    $res->execute(array($_GET["q"]));
+    $res->execute(array($searchQuery));
     $r = $res->fetch(PDO::FETCH_ASSOC);
     $results[] = [$r["cityName"], $r["countryName"], [isNull($r["overallTaxes"]), isNull($r["overallEnvironment"]), isNull($r["overallSecurity"]), isNull($r["overallCOL"]), isNull($r["overallScore"])], $r["cityImage"], $r["cityID"]];
 
 } else {
     $sql = "
         SELECT cityID, cityImage, cityName, countryName, AVG(reviewTaxes) as overallTaxes, AVG(reviewEnvironment) as overallEnvironment, AVG(reviewCOL) AS overallCOL, AVG(reviewSecurity) AS overallSecurity, (AVG(reviewTaxes)+AVG(reviewEnvironment)+AVG(reviewCOL)+AVG(reviewSecurity))/4 as overallScore
-        FROM Countries CO
-        JOIN Cities CI ON countryID = cityCountryID
-        LEFT JOIN Reviews Re ON reviewCityID = cityID
+        FROM Countries
+        JOIN Cities ON countryID = cityCountryID
+        LEFT JOIN Reviews ON reviewCityID = cityID
         WHERE countryID = ?
         GROUP BY cityID
         ORDER BY overallScore DESC
     ";
     $res = $db->prepare($sql);
-    $res->execute(array($_GET["q"]));
+    $res->execute(array($searchQuery));
     $res = $res->fetchAll(PDO::FETCH_ASSOC);
     foreach ($res as $r){
         $results[] = [$r["cityName"], $r["countryName"], [isNull($r["overallTaxes"]), isNull($r["overallEnvironment"]), isNull($r["overallSecurity"]), isNull($r["overallCOL"]), isNull($r["overallScore"])], $r["cityImage"], $r["cityID"]];
@@ -72,8 +73,10 @@ $db = null;
             const data = <?php echo json_encode($results); ?>, toGenerate = <?php if ($type == "city"){echo 1;}else{ echo 28;}?>;
             $('#live-search').val('');
             isLogged();
+            login();
+            signup();
             liveSearch(5);
-            cityWildcardGen(generated, toGenerate, data.slice(generated, toGenerate));
+            cityWildcardGen(generated, data.slice(generated, toGenerate));
             generated += toGenerate;
             if (generated < data.length) {
                 $(window).on("scroll", () => {
