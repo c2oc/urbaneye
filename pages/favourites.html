@@ -29,10 +29,7 @@
         $(document).ready(function() {
             let generated = 0, toGenerate = 28, lastGeneration = new Date().getTime();
             $('#live-search').val('');
-            isLogged();
-            login();
-            signup();
-            liveSearch(5);
+            isLogged();            liveSearch(5);
             $.when(favouritesHandler(generated, toGenerate)).done(function(){
                 $("#web-loader").hide("slow");
             });
@@ -232,9 +229,9 @@
                                 </svg>
                             </div>
                             <div class="pl-3">
-                                <a href="" class="text-sm font-medium leading-none">
-                                    Favourites
-                                </a>
+                                <p class="text-sm font-medium leading-none">
+                                    <a href="">Favourites</a>
+                                </p>
                                 <p class="text-xs text-gray-300">The cities you love</p>
                             </div>
                         </a>

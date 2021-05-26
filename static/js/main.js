@@ -85,7 +85,7 @@ function favouritesHandler(generated, toGenerate){
         url: "/../api/userHandler.php",
         data: {pageRequested: "favourites", alreadyGenerated: generated, toGenerate: toGenerate},
         success: function (response) {
-            cityWildcardGen(JSON.parse(response).favourites);
+            cityWildcardGen(generated, toGenerate, JSON.parse(response).favourites);
         },
         error: function () {
             console.log("JSON error: couldn't reach the server")
