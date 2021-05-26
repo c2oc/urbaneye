@@ -24,7 +24,7 @@
         $sql = 'INSERT INTO Users (userUsername, userMail, userPassword) VALUES (?,?,?)';
         $res = $db->prepare($sql);
         $res->execute(array($username, $email, $password));
-        if ($res->execute() == 1) {
+        if ($res->rowCount() == 1) {
             session_start();
             $_SESSION["userSession"] = $username;
             $_SESSION["userData"] = array($email, $username, "default.jpg");
