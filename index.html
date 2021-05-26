@@ -34,8 +34,6 @@
             $('#live-search').val('');
             isLogged();
             liveSearch(5);
-     //       signup();
-     //       login();
             $.when(cityWildcardHandler(generated, toGenerate)).done(function(){
                 $("#web-loader").hide("slow");
             });
