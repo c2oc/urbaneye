@@ -7,7 +7,7 @@
 
     if ($isReview) {
         $sql = "
-                SELECT reviewCreation, cityID, cityCountryID, reviewUserID, userUsername, userPropic, cityName, countryName, (AVG(reviewTaxes)+AVG(reviewEnvironment)+AVG(reviewCOL)+AVG(reviewSecurity))/4 as overallScore
+                SELECT reviewCreated_at, reviewOverallEvaluation, userUsername, userPropic, cityName, countryName, (AVG(reviewTaxes)+AVG(reviewEnvironment)+AVG(reviewCOL)+AVG(reviewSecurity))/4 as overallScore
                 FROM Cities
                 JOIN Countries ON cityCountryID = countryID
                 JOIN Reviews ON cityID = reviewCityID
@@ -18,7 +18,7 @@
                 ";
         $reviewsDump = array();
         foreach ($db->query($sql) as $review){
-            $reviewsDump[] = [$review["reviewCreation"], $review["userName"], $review["userPropic"], $review["countryName"], $review["cityName"], $review["overallScore"]];
+            $reviewsDump[] = [$review["reviewCreated_at"], $review["userUsername"], $review["userPropic"], $review["countryName"], $review["cityName"], $review["overallScore"]];
         }
         echo json_encode(array('reviews' => $reviewsDump));
         $reviewsDump = null;

@@ -36,7 +36,7 @@
             signup();
             login();
             liveSearch(5);
-            $.when(cityWildcardHandler(generated, toGenerate)).done(function(){
+            $.when(cityWildcardHandler(generated, toGenerate), reviewWildcardHandler()).done(function(){
                 $("#web-loader").hide("slow");
             });
             generated += toGenerate;
@@ -448,8 +448,49 @@
             the thrill of <b class="text-custom-erin">adventure</b>!
         </p>
         <div class="mt-10 flex justify-start">
-            <div id="reviewsSection" class="grid grid-rows-none sm:grid-flow-col gap-5">
-                <review-card city-name="Washington" country-name="United States" review-text="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam metus arcu, aliquet id tempus non, lobortis et mi. Sed id suscipit neque. Duis eu mauris in neque tincidunt egestas. Vivamus auctor risus eget justo porttitor, sed fringilla mauris ornare. Cras vehicula felis vitae dolor tempor, eget ornare tellus pulvinar. Nullam facilisis efficitur nunc sit amet pulvinar. Pellentesque lacinia non lacus at fringilla. Pellentesque nec nunc vitae lorem feugiat feugiat et a quam. Maecenas nisl erat, faucibus ac commodo vitae, tincidunt sit amet elit. Nulla in dolor dolor. Cras vel volutpat dui." :overall-score="70" username="thev1kingman" user-image="https://i.guim.co.uk/img/media/893ac1595862efabd3dc37cc53a1a76b905e83fe/0_397_5069_3042/master/5069.jpg?width=1200&height=900&quality=85&auto=format&fit=crop&s=9fc6f25273b03fa5418d4a613ca5e4da" review-date="06/01/2021" />
+            <div id="review-section" class="grid grid-rows-none sm:grid-flow-col gap-5">
+                <div id="single-review" class="w-11/12 h-32 mx-auto bg-custom-dark rounded-xl shadow-wildcard overflow-hidden md:w-96 md:h-52 text-lightText" style="display: none">
+                    <div class="p-3.5 md:p-5 flex flex-col md:justify-between">
+                        <div class="-m-1 flex justify-between">
+                            <h2 id="review-city" class="text-2xl"></h2>
+                            <h4 id="review-score" class="text-2xl md:text-4xl">
+                                <span class="text-lightText">/100</span>
+                            </h4>
+                        </div>
+                        <h3 id="review-country" class="ml-2 leading-tight text-subtitleGray text-md md:text-xl"></h3>
+                        <p id="review-text" class="md:mt-2 truncate-1-lines md:truncate-2-lines"></p>
+                        <div class="relative md:top-2.5 flex mt-1.5 md:mt-auto">
+                            <img
+                                    id="review-propic"
+                                    class="mr-2.5 w-8 h-8 md:w-10 md:h-10 rounded-full relative md:top-3"
+                                    src=""
+                                    alt="reviewer profile picture"
+                            />
+                            <div class="inline-flex relative top-0.5 md:top-4">
+                                <h5 id="review-username"></h5>
+                                <svg
+                                        class="ml-2 mr-2"
+                                        width="2"
+                                        height="26"
+                                        viewBox="0 0 2 24"
+                                        fill="none"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                >
+                                    <line x1="0.833374" y1="24" x2="0.833374" stroke="#909090" />
+                                </svg>
+                                <h5 id="review-date" class="text-subtitleGray text-sm relative top-0.5"></h5>
+                            </div>
+                            <!--
+                            <nav-button
+                                    class="invisible relative left-2 top-3 md:visible"
+                                    button-name="read"
+                                    button-link="#"
+                                    :is-prefetch="false"
+                            />
+                            -->
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

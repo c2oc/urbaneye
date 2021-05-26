@@ -279,3 +279,32 @@ function cityWildcardHovered(cloneID, isHovered) {
         document.querySelector("#city-info-"+id).style.display="flex";
     }
 }
+/* reviews */
+function reviewWildcardHandler() {
+    return $.ajax({
+        type: "post",
+        url: "/../api/wildcardsHandler.php",
+        data: {isReview: 1},
+        success: function (response) {
+            reviewWildcardGen(JSON.parse(response).reviews);
+        },
+        error: function () {
+            console.log("JSON error: couldn't reach the server")
+        }
+    });
+}
+function reviewWildcardGen(data) {
+    let clone = null;
+    for (let i = 0; i < data.length; i++) {
+        clone = document.querySelector("#single-review").cloneNode(true);
+        clone.setAttribute('id', "review-gen-" + i);
+        clone.querySelector("#review-date").innerHTML = data[i][0];
+        clone.querySelector("#review-username").innerHTML = data[i][1];
+        clone.querySelector("#review-propic").src = "../assets/img/users/" + data[i][2];
+        clone.querySelector("#review-country").innerHTML = data[i][3];
+        clone.querySelector("#review-city").innerHTML = data[i][4];
+        clone.querySelector("#review-score").innerHTML = Math.floor(data[i][5]).toString();
+        clone.style.display = "inherit";
+        document.querySelector("#review-section").appendChild(clone);
+    }
+}
