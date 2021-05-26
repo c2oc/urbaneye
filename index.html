@@ -33,6 +33,8 @@
             let generated = 0, toGenerate = 28, lastGeneration = new Date().getTime();
             $('#live-search').val('');
             isLogged();
+            signup();
+            login();
             liveSearch(5);
             $.when(cityWildcardHandler(generated, toGenerate)).done(function(){
                 $("#web-loader").hide("slow");
