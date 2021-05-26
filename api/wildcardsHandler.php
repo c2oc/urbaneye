@@ -18,7 +18,7 @@
                 ";
         $reviewsDump = array();
         foreach ($db->query($sql) as $review){
-            $reviewsDump[] = [$review["reviewCreated_at"], $review["userUsername"], $review["userPropic"], $review["countryName"], $review["cityName"], $review["overallScore"]];
+            $reviewsDump[] = [$review["reviewCreated_at"], $review["userUsername"], $review["userPropic"], $review["countryName"], $review["cityName"], $review["overallScore"], $review["reviewOverallEvaluation"]];
         }
         echo json_encode(array('reviews' => $reviewsDump));
         $reviewsDump = null;
