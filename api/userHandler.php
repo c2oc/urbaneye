@@ -4,7 +4,7 @@
     $pageRequested = $_POST["pageRequested"];
     if ($pageRequested == "user-drop") {
         echo json_encode(array('email' => $_SESSION["userData"][0], 'username' => $_SESSION["userData"][1], 'propic' => $_SESSION["userData"][2]));
-    } else if ($pageRequested = "favourites") {
+    } else if ($pageRequested == "favourites") {
         $alreadyGenerated = $_POST["alreadyGenerated"];
         $toGenerate = $_POST["toGenerate"];
         $db = db_connection();
@@ -20,7 +20,11 @@
         LIMIT ?, ?
     ";
         $res = $db->prepare($sql);
-        $res->execute(array($_SESSION["userSession"], $alreadyGenerated, $toGenerate));
+        echo $_SESSION["userSession"];
+        $res->bindParam(1, $_SESSION['userSession']);
+        $res->bindParam(2, $alreadyGenerated, PDO::PARAM_INT);
+        $res->bindParam(3, $toGenerate, PDO::PARAM_INT);
+        $res->execute();
         $res = $res->fetchAll(PDO::FETCH_ASSOC);
         $favourites = array();
         foreach ($res as $r) {
