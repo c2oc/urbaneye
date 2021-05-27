@@ -1,4 +1,5 @@
 <?php
+
     session_start();
     if (empty($_POST["cityID"]) || !isset($_SESSION["userSession"])){
         header("location:../index.html");
@@ -388,7 +389,7 @@
         </div>
     </nav>
 </div>
-<div role="alert" style="display:<?php if($isInserted){echo'inherit;';} else {echo 'none;';} ?>">
+<div role="alert" style="display:<?php if($isInserted){ echo 'none;';} else {echo 'inherit;';} ?>">
     <div class="bg-red-500 text-white font-bold rounded-t px-4 py-2">
         You failed
     </div>

@@ -628,7 +628,7 @@
     </div>
     <form action="added.php" method="post">
         <label>
-            <input name="add-favourites" value="lol" style="display: none"/>
+            <input name="add-favourite" value="lol" style="display: none"/>
         </label>
         <label>
             <input name="cityID" value="<?php echo $searchQuery; ?>" class="text-sm sm:text-base pl-10 pr-4 rounded-lg bg-custom-eerie w-full py-2 focus:outline-none" />
@@ -649,7 +649,7 @@
 
                 <form action="added.php" id="review-form" method="post">
                     <label>
-                        <input name="cityID" value="<?php echo $searchQuery; ?>" class="text-sm sm:text-base pl-10 pr-4 rounded-lg bg-custom-eerie w-full py-2 focus:outline-none" />
+                        <input name="cityID" value="<?php echo $searchQuery; ?>" class="text-sm sm:text-base pl-10 pr-4 rounded-lg bg-custom-eerie w-full py-2 focus:outline-none" style="display: none" />
                     </label>
                     <div class="flex flex-col mb-6">
                         <label for="review-taxes" class="mb-1 text-xs sm:text-sm tracking-wide">Taxes</label>
@@ -685,7 +685,7 @@
                                 </svg>
                             </div>
 
-                            <input id="review-COL" required="required" type="number" min="1" max="100" name="review-COL-text" class="text-sm sm:text-base pl-10 pr-4 rounded-lg bg-custom-eerie w-full py-2 focus:outline-none" />
+                            <input id="review-COL" required="required" type="number" min="1" max="100" name="review-COL" class="text-sm sm:text-base pl-10 pr-4 rounded-lg bg-custom-eerie w-full py-2 focus:outline-none" />
                         </div>
                     </div>
                     <div class="flex flex-col mb-6">
@@ -710,7 +710,7 @@
                                 </svg>
                             </div>
 
-                            <input id="review-environment" required="required" type="number" min="1" max="100" name="review-environment-text" class="text-sm sm:text-base pl-10 pr-4 rounded-lg bg-custom-eerie w-full py-2 focus:outline-none" />
+                            <input id="review-environment" required="required" type="number" min="1" max="100" name="review-environment" class="text-sm sm:text-base pl-10 pr-4 rounded-lg bg-custom-eerie w-full py-2 focus:outline-none" />
                         </div>
                     </div>
                     <div class="flex flex-col mb-6">
@@ -734,7 +734,7 @@
                                 </svg>
                             </div>
 
-                            <input id="review-security" required="required" type="number" min="1" max="100" name="review-security-text" class="text-sm sm:text-base pl-10 pr-4 rounded-lg bg-custom-eerie w-full py-2 focus:outline-none" />
+                            <input id="review-security" required="required" type="number" min="1" max="100" name="review-security" class="text-sm sm:text-base pl-10 pr-4 rounded-lg bg-custom-eerie w-full py-2 focus:outline-none" />
                         </div>
                     </div>
                     <div class="flex flex-col mb-6">
