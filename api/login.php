@@ -14,9 +14,9 @@
     if(password_verify($password, $userData['userPassword'])){
         if (password_needs_rehash($userData['userPassword'], PASSWORD_DEFAULT, ["cost" => costCalculator()])){
            $newHash = password_hash($password, PASSWORD_DEFAULT, ["cost" => costCalculator()]);
-           $sql = "UPDATE Users SET userPassword = ' $newHash ' WHERE userUsername = ?";
+           $sql = "UPDATE Users SET userPassword = ? WHERE userUsername = ?";
            $res = $db->prepare($sql);
-           $res->execute(array($userData['userID']));
+           $res->execute(array($newHash, $username));
         }
         session_start();
         $_SESSION["userSession"] = $username;

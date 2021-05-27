@@ -1,44 +1,118 @@
 <?php
 
-if (empty($_GET["q"])){
-    header("location:index.html");
-}
-require("../api/dbConn.php");
-$db = db_connection();
-$type = $_GET["t"];
-$searchQuery = $_GET["q"];
-$results = array();
-if ($type == "city"){
-    $sql = "
-        SELECT cityID, cityImage, cityName, countryName, AVG(reviewTaxes) as overallTaxes, AVG(reviewEnvironment) as overallEnvironment, AVG(reviewCOL) AS overallCOL, AVG(reviewSecurity) AS overallSecurity, (AVG(reviewTaxes)+AVG(reviewEnvironment)+AVG(reviewCOL)+AVG(reviewSecurity))/4 as overallScore
-        FROM Cities
-        JOIN Countries ON cityCountryID = countryID
-        LEFT JOIN Reviews ON cityID = reviewCityID
-        WHERE cityID = ?
-    ";
-    $res = $db->prepare($sql);
-    $res->execute(array($searchQuery));
-    $r = $res->fetch(PDO::FETCH_ASSOC);
-    $results[] = [$r["cityName"], $r["countryName"], [isNull($r["overallTaxes"]), isNull($r["overallEnvironment"]), isNull($r["overallSecurity"]), isNull($r["overallCOL"]), isNull($r["overallScore"])], $r["cityImage"], $r["cityID"]];
-
-} else {
-    $sql = "
-        SELECT cityID, cityImage, cityName, countryName, AVG(reviewTaxes) as overallTaxes, AVG(reviewEnvironment) as overallEnvironment, AVG(reviewCOL) AS overallCOL, AVG(reviewSecurity) AS overallSecurity, (AVG(reviewTaxes)+AVG(reviewEnvironment)+AVG(reviewCOL)+AVG(reviewSecurity))/4 as overallScore
-        FROM Countries
-        JOIN Cities ON countryID = cityCountryID
-        LEFT JOIN Reviews ON reviewCityID = cityID
-        WHERE countryID = ?
-        GROUP BY cityID
-        ORDER BY overallScore DESC
-    ";
-    $res = $db->prepare($sql);
-    $res->execute(array($searchQuery));
-    $res = $res->fetchAll(PDO::FETCH_ASSOC);
-    foreach ($res as $r){
-        $results[] = [$r["cityName"], $r["countryName"], [isNull($r["overallTaxes"]), isNull($r["overallEnvironment"]), isNull($r["overallSecurity"]), isNull($r["overallCOL"]), isNull($r["overallScore"])], $r["cityImage"], $r["cityID"]];
+    if (empty($_GET["q"])){
+        header("location:index.html");
     }
-}
-$db = null;
+    require("../api/dbConn.php");
+    $db = db_connection();
+    $type = $_GET["t"];
+    $searchQuery = $_GET["q"];
+    $isInserted = false;
+    $results = array();
+    if ($type == "city"){
+        $sql = "
+            SELECT cityID, cityImage, cityName, countryName, AVG(reviewTaxes) as overallTaxes, AVG(reviewEnvironment) as overallEnvironment, AVG(reviewCOL) AS overallCOL, AVG(reviewSecurity) AS overallSecurity, (AVG(reviewTaxes)+AVG(reviewEnvironment)+AVG(reviewCOL)+AVG(reviewSecurity))/4 as overallScore
+            FROM Cities
+            JOIN Countries ON cityCountryID = countryID
+            LEFT JOIN Reviews ON cityID = reviewCityID
+            WHERE cityID = ?
+        ";
+        $res = $db->prepare($sql);
+        $res->execute(array($searchQuery));
+        $r = $res->fetch(PDO::FETCH_ASSOC);
+        $results[] = [$r["cityName"], $r["countryName"], [isNull($r["overallTaxes"]), isNull($r["overallEnvironment"]), isNull($r["overallSecurity"]), isNull($r["overallCOL"]), isNull($r["overallScore"])], $r["cityImage"], $r["cityID"]];
+
+    } else {
+        $sql = "
+            SELECT cityID, cityImage, cityName, countryName, AVG(reviewTaxes) as overallTaxes, AVG(reviewEnvironment) as overallEnvironment, AVG(reviewCOL) AS overallCOL, AVG(reviewSecurity) AS overallSecurity, (AVG(reviewTaxes)+AVG(reviewEnvironment)+AVG(reviewCOL)+AVG(reviewSecurity))/4 as overallScore
+            FROM Countries
+            JOIN Cities ON countryID = cityCountryID
+            LEFT JOIN Reviews ON reviewCityID = cityID
+            WHERE countryID = ?
+            GROUP BY cityID
+            ORDER BY overallScore DESC
+        ";
+        $res = $db->prepare($sql);
+        $res->execute(array($searchQuery));
+        $res = $res->fetchAll(PDO::FETCH_ASSOC);
+        foreach ($res as $r){
+            $results[] = [$r["cityName"], $r["countryName"], [isNull($r["overallTaxes"]), isNull($r["overallEnvironment"]), isNull($r["overallSecurity"]), isNull($r["overallCOL"]), isNull($r["overallScore"])], $r["cityImage"], $r["cityID"]];
+        }
+    }
+    if (!empty($_POST["add-favourite"]) && $type != "country"){
+        $sql = "
+        INSERT INTO Favourites (favouriteUserID, favouriteCityID)
+        VALUES ((SELECT userID FROM Users WHERE userUsername = ?), ?)
+        ";
+        $res = $db->prepare($sql);
+        $res->execute(array($_SESSION["userSession"], $searchQuery));
+        if ($res->rowCount()){
+            $isInserted = true;
+        }
+    }
+    if (!empty($_POST["overall-evaluation"]) && isset($_SESSION["userSession"]) && $type != "country"){
+        $overallEvaluation = filter_var($_POST["overall-evaluation"],  FILTER_SANITIZE_STRING);
+        $overallTaxes = filter_var($_POST["overall-taxes"],  FILTER_SANITIZE_NUMBER_FLOAT);
+        $overallTaxesDescription = filter_var($_POST["overall-taxes-text"], FILTER_SANITIZE_STRING);
+        $overallEnvironment = filter_var($_POST["overall-environment"],  FILTER_SANITIZE_NUMBER_FLOAT);
+        $overallEnvironmentDescription = filter_var($_POST["overall-environment-text"], FILTER_SANITIZE_STRING);
+        $overallCOL = filter_var($_POST["overall-COL"],  FILTER_SANITIZE_NUMBER_FLOAT);
+        $overallCOLDescription = filter_var($_POST["overall-COL-text"], FILTER_SANITIZE_STRING);
+        $overallSecurity = filter_var($_POST["overall-security"],  FILTER_SANITIZE_NUMBER_FLOAT);
+        $overallSecurityDescription = filter_var($_POST["overall-security-text"], FILTER_SANITIZE_STRING);
+        $sql = "
+        INSERT INTO Reviews(
+                            reviewCityID,
+                            reviewUserID,
+                            reviewTaxes,
+                            reviewTaxesDescription,
+                            reviewCOL,
+                            reviewCOLDescription,
+                            reviewEnvironment,
+                            reviewEnvironmentDescription,
+                            reviewSecurity,
+                            reviewSecurityDescription,
+                            reviewOverallEvaluation
+                            ) VALUES(
+                                     ?,
+                                     (
+                                        SELECT userID 
+                                        FROM Users
+                                        WHERE userUsername = ?
+                                         ),
+                                     ?,
+                                     ?,
+                                     ?,
+                                     ?,
+                                     ?,
+                                     ?,
+                                     ?,
+                                     ?,
+                                     ?
+                            );
+        ";
+        $res = $db->prepare($sql);
+    //    $res->bindParam(1, $searchQuery, PDO::PARAM_INT);
+    //    $res->bindParam(2, $overallTaxes, PDO::PARAM_INT);
+    //    $res->bindParam(3, $toGenerate, PDO::PARAM_INT);
+        $res->execute(array(
+            $searchQuery,
+            $_SESSION["userSession"],
+            $overallTaxes,
+            $overallTaxesDescription,
+            $overallCOL,
+            $overallCOLDescription,
+            $overallEnvironment,
+            $overallEnvironmentDescription,
+            $overallSecurity,
+            $overallSecurityDescription,
+            $overallEvaluation
+        ));
+        if ($res->rowCount()){
+            $isInserted = true;
+        }
+    }
+    $db = null;
 ?>
 <html lang="en">
 <head>
@@ -66,6 +140,8 @@ $db = null;
                 $('#email').val('');
                 $('#password-su').val('');
                 $('#username-su').val('');
+            } else if($('#review-inserter').is(':visible')){
+                $("#")
             }
         });
         $(document).ready(function() {
@@ -96,7 +172,7 @@ $db = null;
                     }
                 });
             }
-            $('#profile-drop, #user-profile, #login-nav, #login-form, #signup-form').click(function (evt) {
+            $('#profile-drop, #user-profile, #login-nav, #login-form, #signup-form, #review-form').click(function (evt) {
                 evt.stopPropagation();
             });
         });
@@ -616,7 +692,159 @@ $db = null;
             </a>
         </div>
     </div>
+    <div class="bg-teal-100 border-t-4 border-teal-500 rounded-b text-teal-900 px-4 py-3 shadow-md" role="alert" style="display:<?php if($isInserted){echo'inherit;';} else {echo 'none;';} ?>">
+        <div class="flex">
+            <div class="py-1"><svg class="fill-current h-6 w-6 text-teal-500 mr-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M2.93 17.07A10 10 0 1 1 17.07 2.93 10 10 0 0 1 2.93 17.07zm12.73-1.41A8 8 0 1 0 4.34 4.34a8 8 0 0 0 11.32 11.32zM9 11V9h2v6H9v-4zm0-6h2v2H9V5z"/></svg></div>
+            <div>
+                <p class="font-bold">You successfully <?php if (empty($_POST["add-favourite"])) { echo 'made a review'; } else { echo 'added a favourite';}?>!</p>
+                <p class="text-sm">Thank you for doing this stuff</p>
+            </div>
+        </div>
+    </div>
+    <form action="result.php" method="post">
+        <label>
+            <input name="add-favourites" value="lol" style="display: none"/>
+        </label>
+        <button type="submit" class="flex items-center justify-center focus:outline-none text-custom-ghost text-sm sm:text-base bg-custom-cayola hover:bg-custom-evil-cayola rounded py-2 w-full transition duration-150 ease-in <?php if ($type == 'city' && isset($_SESSION['userSession'])){echo 'opacity-50 cursor-not-allowed';} ?>" onclick="$('#review-inserter').show('fast')">
+            Add to favourites
+        </button>
+    </form>
+    <button type="submit" class="flex items-center justify-center focus:outline-none text-custom-ghost text-sm sm:text-base bg-custom-cayola hover:bg-custom-evil-cayola rounded py-2 w-full transition duration-150 ease-in <?php if ($type == 'city' && isset($_SESSION['userSession'])){echo 'opacity-50 cursor-not-allowed';} ?>" onclick="$('#review-inserter').show('fast')">
+    Insert review
+    </button>
 </div>
+    <div id="review-inserter" class="modal z-40 absolute w-full h-full top-0 left-0 flex items-center justify-center" style="display: none">
+        <div class="modal-overlay absolute w-full h-full bg-black opacity-25 top-0 left-0 cursor-pointer z-0"></div>
+        <div class="absolute flex flex-col bg-custom-dark shadow-lg px-4 sm:px-6 md:px-8 lg:px-10 py-8 rounded-md w-full max-w-md">
+            <div class="font-medium self-center text-xl sm:text-2xl uppercase">Login To Your Account</div>
+            <div class="mt-10">
+
+                <form action="result.php" id="review-form" method="post">
+                    <div class="flex flex-col mb-6">
+                        <label for="review-taxes" class="mb-1 text-xs sm:text-sm tracking-wide">Taxes</label>
+                        <div class="relative">
+                            <div class="inline-flex items-center justify-center absolute left-0 top-0 h-full w-10">
+                                <svg class="h-6 w-6" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
+                                </svg>
+                            </div>
+
+                            <input id="review-taxes" required="required" type="number" min="1" max="100" name="review-taxes" class="text-sm sm:text-base pl-10 pr-4 rounded-lg bg-custom-eerie w-full py-2 focus:outline-none" />
+                        </div>
+                    </div>
+                    <div class="flex flex-col mb-6">
+                        <label for="review-taxes-text" class="mb-1 text-xs sm:text-sm tracking-wide">Taxes review</label>
+                        <div class="relative">
+                            <div class="inline-flex items-center justify-center absolute left-0 top-0 h-full w-10">
+                                <svg class="h-6 w-6" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
+                                </svg>
+                            </div>
+
+                            <input id="review-taxes-text" type="text" name="review-taxes-text" class="text-sm sm:text-base pl-10 pr-4 rounded-lg bg-custom-eerie w-full py-2 focus:outline-none" />
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col mb-6">
+                        <label for="review-COL" class="mb-1 text-xs sm:text-sm tracking-wide">Cost of Life</label>
+                        <div class="relative">
+                            <div class="inline-flex items-center justify-center absolute left-0 top-0 h-full w-10">
+                                <svg class="h-6 w-6" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
+                                </svg>
+                            </div>
+
+                            <input id="review-COL" required="required" type="number" min="1" max="100" name="review-COL-text" class="text-sm sm:text-base pl-10 pr-4 rounded-lg bg-custom-eerie w-full py-2 focus:outline-none" />
+                        </div>
+                    </div>
+                    <div class="flex flex-col mb-6">
+                        <label for="review-COL-text" class="mb-1 text-xs sm:text-sm tracking-wide">Cost of Life review</label>
+                        <div class="relative">
+                            <div class="inline-flex items-center justify-center absolute left-0 top-0 h-full w-10">
+                                <svg class="h-6 w-6" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
+                                </svg>
+                            </div>
+
+                            <input id="review-COL-text" type="text" name="review-COL-text" class="text-sm sm:text-base pl-10 pr-4 rounded-lg bg-custom-eerie w-full py-2 focus:outline-none" />
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col mb-6">
+                        <label for="review-environment" class="mb-1 text-xs sm:text-sm tracking-wide">Environment</label>
+                        <div class="relative">
+                            <div class="inline-flex items-center justify-center absolute left-0 top-0 h-full w-10">
+                                <svg class="h-6 w-6" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
+                                </svg>
+                            </div>
+
+                            <input id="review-environment" required="required" type="number" min="1" max="100" name="review-environment-text" class="text-sm sm:text-base pl-10 pr-4 rounded-lg bg-custom-eerie w-full py-2 focus:outline-none" />
+                        </div>
+                    </div>
+                    <div class="flex flex-col mb-6">
+                        <label for="review-environment-text" class="mb-1 text-xs sm:text-sm tracking-wide">Environment review</label>
+                        <div class="relative">
+                            <div class="inline-flex items-center justify-center absolute left-0 top-0 h-full w-10">
+                                <svg class="h-6 w-6" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
+                                </svg>
+                            </div>
+
+                            <input id="review-environment-text" type="text" name="review-environment-text" class="text-sm sm:text-base pl-10 pr-4 rounded-lg bg-custom-eerie w-full py-2 focus:outline-none" />
+                        </div>
+                    </div>
+                    <div class="flex flex-col mb-6">
+                        <label for="review-security" class="mb-1 text-xs sm:text-sm tracking-wide">Environment</label>
+                        <div class="relative">
+                            <div class="inline-flex items-center justify-center absolute left-0 top-0 h-full w-10">
+                                <svg class="h-6 w-6" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
+                                </svg>
+                            </div>
+
+                            <input id="review-security" required="required" type="number" min="1" max="100" name="review-security-text" class="text-sm sm:text-base pl-10 pr-4 rounded-lg bg-custom-eerie w-full py-2 focus:outline-none" />
+                        </div>
+                    </div>
+                    <div class="flex flex-col mb-6">
+                        <label for="review-security-text" class="mb-1 text-xs sm:text-sm tracking-wide">Environment review</label>
+                        <div class="relative">
+                            <div class="inline-flex items-center justify-center absolute left-0 top-0 h-full w-10">
+                                <svg class="h-6 w-6" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
+                                </svg>
+                            </div>
+                            <input id="review-security-text" type="text" name="review-security-text" class="text-sm sm:text-base pl-10 pr-4 rounded-lg bg-custom-eerie w-full py-2 focus:outline-none" />
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col mb-6">
+                        <label for="overall-evaluation" class="mb-1 text-xs sm:text-sm tracking-wide">Overall Evaluation</label>
+                        <div class="relative">
+                            <div class="inline-flex items-center justify-center absolute left-0 top-0 h-full w-10">
+              <span>
+                <svg class="h-6 w-6" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
+                  <path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+              </span>
+                            </div>
+                        <input id="overall-evaluation" required="required" type="text" name="overall-evaluation" class="text-sm sm:text-base pl-10 pr-4 rounded-lg   bg-custom-eerie w-full py-2 focus:outline-none"/>
+                        </div>
+                    </div>
+                    <div class="flex w-full">
+                        <button name="review-insert" type="submit" class="flex items-center justify-center focus:outline-none text-custom-ghost text-sm sm:text-base bg-custom-cayola hover:bg-custom-evil-cayola rounded py-2 w-full transition duration-150 ease-in">
+                            <span class="mr-2 uppercase">Submit</span>
+                            <span>
+                                  <svg class="h-6 w-6" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path d="M13 9l3 3m0 0l-3 3m3-3H8m13 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                  </svg>
+                                </span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
     <div id="cards-loader" class="grid justify-center" style="display: none">
         <div class="relative justify-center w-12 h-12 border-8 border-custom-cayola rounded-full loader"></div>
     </div>

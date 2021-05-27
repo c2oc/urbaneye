@@ -195,7 +195,7 @@
                         <p id="drop-email" class="text-sm text-gray-300"></p>
                     </div>
                     <div class="border-b">
-                        <a href="#" class="px-4 py-2 hover:bg-gray-700 flex">
+                        <a href="pages/settings.php" class="px-4 py-2 hover:bg-gray-700 flex">
                             <div>
                                 <svg
                                         fill="none"
@@ -234,7 +234,7 @@
                                 <p class="text-xs text-gray-300">Profile, notifications</p>
                             </div>
                         </a>
-                        <a href="#" class="px-4 py-2 hover:bg-gray-700 flex">
+                        <a href="pages/favourites.html" class="px-4 py-2 hover:bg-gray-700 flex">
                             <div>
                                 <svg
                                         fill="none"
@@ -249,12 +249,10 @@
                                 </svg>
                             </div>
                             <div class="pl-3">
-                                <a href="pages/favourites.html">
                                     <p class="text-sm font-medium leading-none">
                                         Favourites
                                     </p>
                                     <p class="text-xs text-gray-300">The cities you love</p>
-                                </a>
                             </div>
                         </a>
                     </div>
@@ -496,7 +494,7 @@
         </div>
     </div>
     <div class="flex justify-center">
-        <div id="cities-section" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-9 gap-5">
+        <div id="cities-section" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-7 gap-5">
 
             <div id="single-city" class="relative object-cover select-none shadow-wildcard rounded-xl cursor-pointer w-44 h-40 md:w-60 md:h-64" style="display:none">
                 <a id="city-page" href="">
@@ -533,12 +531,13 @@
                                 <span class="sr-only">{{ overallSecurity + '%' }}%</span>
                             </div>
                         </div>
+                        <!--
                         <div class="relative left-1/4 top-1 md:invisible">
                             <button class="bg-red-600 rounded-xl w-16 h-4 uppercase">
                                 <span class="not-sr-only">Go!</span>
                             </button>
                         </div>
-                        <!-- remember remember, this button is for mobile -->
+                        remember remember, this button is for mobile -->
                     </div>
                 </div>
                 <!-- wildcard is NOT Hovered -->
