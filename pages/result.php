@@ -628,19 +628,20 @@
             </a>
         </div>
     </div>
-    <form action="added.php" method="post" <?php if ($type != 'city' || !isset($_SESSION['userSession'])) {echo 'display:none;';}?>>
+    <div <?php if ($type != 'city' || !isset($_SESSION['userSession'])) {echo 'style="display:none;"';}?>>
+    <form action="added.php" method="post">
         <label>
             <input name="<?php if ($isFavourite) {echo 'remove-favourite';}else{echo 'add-favourite';}?>" value="lol" style="display: none"/>
         </label>
         <label>
             <input name="cityID" value="<?php echo $searchQuery; ?>"  style="display: none" class="text-sm sm:text-base pl-10 pr-4 rounded-lg bg-custom-eerie w-full py-2 focus:outline-none" />
         </label>
-        <button type="submit" class="flex items-center justify-center focus:outline-none text-custom-ghost text-sm sm:text-base bg-custom-cayola hover:bg-custom-evil-cayola rounded py-2 w-full transition duration-150 ease-in <?php if ($type != 'city' || !isset($_SESSION['userSession'])){echo 'opacity-50 cursor-not-allowed';?>" <?php echo 'disabled style="display:none;"';} ?> >
+        <button type="submit" class="flex items-center justify-center focus:outline-none text-custom-ghost text-sm sm:text-base bg-custom-cayola hover:bg-custom-evil-cayola rounded py-2 w-full transition duration-150 ease-in">
             <?php if ($isFavourite) {echo 'Remove from Favourites';}else{echo 'Add to Favourites';}?>
         </button>
     </form>
 
-    <button type="submit" class="flex items-center justify-center focus:outline-none text-custom-ghost text-sm sm:text-base bg-custom-cayola hover:bg-custom-evil-cayola rounded py-2 w-full transition duration-150 ease-in <?php if ($type != 'city' || !isset($_SESSION['userSession'])){echo 'opacity-50 cursor-not-allowed'; ?>" onclick="$('#review-inserter').show('fast')" <?php echo 'disabled style="display:none;"';}?>>
+    <button type="submit" class="flex items-center justify-center focus:outline-none text-custom-ghost text-sm sm:text-base bg-custom-cayola hover:bg-custom-evil-cayola rounded py-2 w-full transition duration-150 ease-in" onclick="$('#review-inserter').show('fast')" >
     Insert review
     </button>
 </div>
@@ -779,6 +780,7 @@
             </div>
         </div>
     </div>
+</div>
     <div id="cards-loader" class="grid justify-center" style="display: none">
         <div class="relative justify-center w-12 h-12 border-8 border-custom-cayola rounded-full loader"></div>
     </div>
