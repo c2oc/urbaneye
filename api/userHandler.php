@@ -9,7 +9,7 @@
         $toGenerate = $_POST["toGenerate"];
         $db = db_connection();
         $sql = "
-        SELECT cityID, cityImage, cityName, countryName, AVG(reviewTaxes) as overallTaxes, AVG(reviewEnvironment) as overallEnvironment, AVG(reviewCOL) AS overallCOL, AVG(reviewSecurity) AS overallSecurity, (AVG(reviewTaxes)+AVG(reviewEnvironment)+AVG(reviewCOL)+AVG(reviewSecurity))/4 as overallScore
+        SELECT cityID, cityImage, cityName, countryName, AVG(reviewTaxes) as taxes, AVG(reviewEnvironment) as environment, AVG(reviewCOL) AS col, AVG(reviewSecurity) AS security, (AVG(reviewTaxes)+AVG(reviewEnvironment)+AVG(reviewCOL)+AVG(reviewSecurity))/4 as overallScore
         FROM Countries
         JOIN Cities ON countryID = cityCountryID
         LEFT JOIN Reviews ON reviewCityID = cityID
@@ -27,7 +27,7 @@
         $res = $res->fetchAll(PDO::FETCH_ASSOC);
         $favourites = array();
         foreach ($res as $r) {
-            $favourites[] = [$r["cityName"], $r["countryName"], [isNull($r["overallTaxes"]), isNull($r["overallEnvironment"]), isNull($r["overallSecurity"]), isNull($r["overallCOL"]), isNull($r["overallScore"])], $r["cityImage"], $r["cityID"]];
+            $favourites[] = [$r["cityName"], $r["countryName"], [isNull($r["taxes"]), isNull($r["environment"]), isNull($r["security"]), isNull($r["col"]), isNull($r["overallScore"])], $r["cityImage"], $r["cityID"]];
         }
         echo json_encode(array('favourites' => $favourites));
     }

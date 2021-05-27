@@ -1,7 +1,7 @@
 <?php
 
     if (empty($_GET["q"])){
-        header("location:index.html");
+        header("location:../index.html");
     }
     require("../api/dbConn.php");
     $db = db_connection();
@@ -11,7 +11,7 @@
     $results = array();
     if ($type == "city"){
         $sql = "
-            SELECT cityID, cityImage, cityName, countryName, AVG(reviewTaxes) as overallTaxes, AVG(reviewEnvironment) as overallEnvironment, AVG(reviewCOL) AS overallCOL, AVG(reviewSecurity) AS overallSecurity, (AVG(reviewTaxes)+AVG(reviewEnvironment)+AVG(reviewCOL)+AVG(reviewSecurity))/4 as overallScore
+            SELECT cityID, cityImage, cityName, countryName, AVG(reviewTaxes) as taxes, AVG(reviewEnvironment) as environment, AVG(reviewCOL) AS col, AVG(reviewSecurity) AS security, (AVG(reviewTaxes)+AVG(reviewEnvironment)+AVG(reviewCOL)+AVG(reviewSecurity))/4 as overallScore
             FROM Cities
             JOIN Countries ON cityCountryID = countryID
             LEFT JOIN Reviews ON cityID = reviewCityID
@@ -20,11 +20,11 @@
         $res = $db->prepare($sql);
         $res->execute(array($searchQuery));
         $r = $res->fetch(PDO::FETCH_ASSOC);
-        $results[] = [$r["cityName"], $r["countryName"], [isNull($r["overallTaxes"]), isNull($r["overallEnvironment"]), isNull($r["overallSecurity"]), isNull($r["overallCOL"]), isNull($r["overallScore"])], $r["cityImage"], $r["cityID"]];
+        $results[] = [$r["cityName"], $r["countryName"], [isNull($r["taxes"]), isNull($r["environment"]), isNull($r["security"]), isNull($r["col"]), isNull($r["overallScore"])], $r["cityImage"], $r["cityID"]];
 
     } else {
         $sql = "
-            SELECT cityID, cityImage, cityName, countryName, AVG(reviewTaxes) as overallTaxes, AVG(reviewEnvironment) as overallEnvironment, AVG(reviewCOL) AS overallCOL, AVG(reviewSecurity) AS overallSecurity, (AVG(reviewTaxes)+AVG(reviewEnvironment)+AVG(reviewCOL)+AVG(reviewSecurity))/4 as overallScore
+            SELECT cityID, cityImage, cityName, countryName, AVG(reviewTaxes) as taxes, AVG(reviewEnvironment) as environment, AVG(reviewCOL) AS col, AVG(reviewSecurity) AS security, (AVG(reviewTaxes)+AVG(reviewEnvironment)+AVG(reviewCOL)+AVG(reviewSecurity))/4 as overallScore
             FROM Countries
             JOIN Cities ON countryID = cityCountryID
             LEFT JOIN Reviews ON reviewCityID = cityID
@@ -36,80 +36,7 @@
         $res->execute(array($searchQuery));
         $res = $res->fetchAll(PDO::FETCH_ASSOC);
         foreach ($res as $r){
-            $results[] = [$r["cityName"], $r["countryName"], [isNull($r["overallTaxes"]), isNull($r["overallEnvironment"]), isNull($r["overallSecurity"]), isNull($r["overallCOL"]), isNull($r["overallScore"])], $r["cityImage"], $r["cityID"]];
-        }
-    }
-    if (!empty($_POST["add-favourite"]) && $type != "country"){
-        $sql = "
-        INSERT INTO Favourites (favouriteUserID, favouriteCityID)
-        VALUES ((SELECT userID FROM Users WHERE userUsername = ?), ?)
-        ";
-        $res = $db->prepare($sql);
-        $res->execute(array($_SESSION["userSession"], $searchQuery));
-        if ($res->rowCount()){
-            $isInserted = true;
-        }
-    }
-    if (!empty($_POST["overall-evaluation"]) && isset($_SESSION["userSession"]) && $type != "country"){
-        $overallEvaluation = filter_var($_POST["overall-evaluation"],  FILTER_SANITIZE_STRING);
-        $overallTaxes = filter_var($_POST["overall-taxes"],  FILTER_SANITIZE_NUMBER_FLOAT);
-        $overallTaxesDescription = filter_var($_POST["overall-taxes-text"], FILTER_SANITIZE_STRING);
-        $overallEnvironment = filter_var($_POST["overall-environment"],  FILTER_SANITIZE_NUMBER_FLOAT);
-        $overallEnvironmentDescription = filter_var($_POST["overall-environment-text"], FILTER_SANITIZE_STRING);
-        $overallCOL = filter_var($_POST["overall-COL"],  FILTER_SANITIZE_NUMBER_FLOAT);
-        $overallCOLDescription = filter_var($_POST["overall-COL-text"], FILTER_SANITIZE_STRING);
-        $overallSecurity = filter_var($_POST["overall-security"],  FILTER_SANITIZE_NUMBER_FLOAT);
-        $overallSecurityDescription = filter_var($_POST["overall-security-text"], FILTER_SANITIZE_STRING);
-        $sql = "
-        INSERT INTO Reviews(
-                            reviewCityID,
-                            reviewUserID,
-                            reviewTaxes,
-                            reviewTaxesDescription,
-                            reviewCOL,
-                            reviewCOLDescription,
-                            reviewEnvironment,
-                            reviewEnvironmentDescription,
-                            reviewSecurity,
-                            reviewSecurityDescription,
-                            reviewOverallEvaluation
-                            ) VALUES(
-                                     ?,
-                                     (
-                                        SELECT userID 
-                                        FROM Users
-                                        WHERE userUsername = ?
-                                         ),
-                                     ?,
-                                     ?,
-                                     ?,
-                                     ?,
-                                     ?,
-                                     ?,
-                                     ?,
-                                     ?,
-                                     ?
-                            );
-        ";
-        $res = $db->prepare($sql);
-    //    $res->bindParam(1, $searchQuery, PDO::PARAM_INT);
-    //    $res->bindParam(2, $overallTaxes, PDO::PARAM_INT);
-    //    $res->bindParam(3, $toGenerate, PDO::PARAM_INT);
-        $res->execute(array(
-            $searchQuery,
-            $_SESSION["userSession"],
-            $overallTaxes,
-            $overallTaxesDescription,
-            $overallCOL,
-            $overallCOLDescription,
-            $overallEnvironment,
-            $overallEnvironmentDescription,
-            $overallSecurity,
-            $overallSecurityDescription,
-            $overallEvaluation
-        ));
-        if ($res->rowCount()){
-            $isInserted = true;
+            $results[] = [$r["cityName"], $r["countryName"], [isNull($r["taxes"]), isNull($r["environment"]), isNull($r["security"]), isNull($r["col"]), isNull($r["overallScore"])], $r["cityImage"], $r["cityID"]];
         }
     }
     $db = null;
@@ -349,7 +276,7 @@
                                 <p class="text-xs text-gray-300">Profile, notifications</p>
                             </div>
                         </a>
-                        <a href="#" class="px-4 py-2 hover:bg-gray-700 flex">
+                        <a href="favourites.html" class="px-4 py-2 hover:bg-gray-700 flex">
                             <div>
                                 <svg
                                         fill="none"
@@ -364,9 +291,7 @@
                                 </svg>
                             </div>
                             <div class="pl-3">
-                                <a href="favourites.html" class="text-sm font-medium leading-none">
                                     Favourites
-                                </a>
                                 <p class="text-xs text-gray-300">The cities you love</p>
                             </div>
                         </a>
@@ -558,7 +483,7 @@
         </h1>
     </div>
 <div class="flex justify-center">
-    <div id="cities-section" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-9 gap-5">
+    <div id="cities-section" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-7 gap-5">
         <div id="single-city" class="relative object-cover select-none shadow-wildcard rounded-xl cursor-pointer w-44 h-40 md:w-60 md:h-64" style="display:none">
             <a id="city-page" href="">
             <img id="city-bg" class="z-0 absolute h-full w-auto rounded-xl object-cover" src="" alt="city image">
@@ -701,15 +626,18 @@
             </div>
         </div>
     </div>
-    <form action="result.php" method="post">
+    <form action="added.php" method="post">
         <label>
             <input name="add-favourites" value="lol" style="display: none"/>
         </label>
-        <button type="submit" class="flex items-center justify-center focus:outline-none text-custom-ghost text-sm sm:text-base bg-custom-cayola hover:bg-custom-evil-cayola rounded py-2 w-full transition duration-150 ease-in <?php if ($type == 'city' && isset($_SESSION['userSession'])){echo 'opacity-50 cursor-not-allowed';} ?>" onclick="$('#review-inserter').show('fast')">
+        <label>
+            <input name="cityID" value="<?php echo $searchQuery; ?>" class="text-sm sm:text-base pl-10 pr-4 rounded-lg bg-custom-eerie w-full py-2 focus:outline-none" />
+        </label>
+        <button type="submit" class="flex items-center justify-center focus:outline-none text-custom-ghost text-sm sm:text-base bg-custom-cayola hover:bg-custom-evil-cayola rounded py-2 w-full transition duration-150 ease-in <?php if ($type != 'city' && !isset($_SESSION['userSession'])){echo 'opacity-50 cursor-not-allowed';} ?>" onclick="$('#review-inserter').show('fast')">
             Add to favourites
         </button>
     </form>
-    <button type="submit" class="flex items-center justify-center focus:outline-none text-custom-ghost text-sm sm:text-base bg-custom-cayola hover:bg-custom-evil-cayola rounded py-2 w-full transition duration-150 ease-in <?php if ($type == 'city' && isset($_SESSION['userSession'])){echo 'opacity-50 cursor-not-allowed';} ?>" onclick="$('#review-inserter').show('fast')">
+    <button type="submit" class="flex items-center justify-center focus:outline-none text-custom-ghost text-sm sm:text-base bg-custom-cayola hover:bg-custom-evil-cayola rounded py-2 w-full transition duration-150 ease-in <?php if ($type != 'city' && !isset($_SESSION['userSession'])){echo 'opacity-50 cursor-not-allowed';} ?>" onclick="$('#review-inserter').show('fast')">
     Insert review
     </button>
 </div>
@@ -719,7 +647,10 @@
             <div class="font-medium self-center text-xl sm:text-2xl uppercase">Login To Your Account</div>
             <div class="mt-10">
 
-                <form action="result.php" id="review-form" method="post">
+                <form action="added.php" id="review-form" method="post">
+                    <label>
+                        <input name="cityID" value="<?php echo $searchQuery; ?>" class="text-sm sm:text-base pl-10 pr-4 rounded-lg bg-custom-eerie w-full py-2 focus:outline-none" />
+                    </label>
                     <div class="flex flex-col mb-6">
                         <label for="review-taxes" class="mb-1 text-xs sm:text-sm tracking-wide">Taxes</label>
                         <div class="relative">
@@ -795,7 +726,7 @@
                         </div>
                     </div>
                     <div class="flex flex-col mb-6">
-                        <label for="review-security" class="mb-1 text-xs sm:text-sm tracking-wide">Environment</label>
+                        <label for="review-security" class="mb-1 text-xs sm:text-sm tracking-wide">Security</label>
                         <div class="relative">
                             <div class="inline-flex items-center justify-center absolute left-0 top-0 h-full w-10">
                                 <svg class="h-6 w-6" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
@@ -807,7 +738,7 @@
                         </div>
                     </div>
                     <div class="flex flex-col mb-6">
-                        <label for="review-security-text" class="mb-1 text-xs sm:text-sm tracking-wide">Environment review</label>
+                        <label for="review-security-text" class="mb-1 text-xs sm:text-sm tracking-wide">Security review</label>
                         <div class="relative">
                             <div class="inline-flex items-center justify-center absolute left-0 top-0 h-full w-10">
                                 <svg class="h-6 w-6" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">

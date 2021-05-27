@@ -1,20 +1,91 @@
 <?php
-    require("api/dbConn.php");
-    session_start();
-    if (!isset($_SESSION["userSession"])){
+
+    if (empty($_POST["cityID"]) || !isset($_SESSION["userSession"])){
         header("location:../index.html");
     }
+    require("../api/dbConn.php");
     $db = db_connection();
-    $sql = "SELECT userID FROM Users WHERE userUsername = ?";
-    $res = $db->prepare($sql);
-    $res->execute(array($_SESSION["userSession"]));
-    $userID = $res->fetch(PDO::FETCH_ASSOC);
+    $searchQuery = $_POST["cityID"];
+    if (!empty($_POST["add-favourite"])){
+        $sql = "
+            INSERT INTO Favourites (favouriteUserID, favouriteCityID)
+            VALUES ((SELECT userID FROM Users WHERE userUsername = ?), ?)
+            ";
+        $res = $db->prepare($sql);
+        $res->execute(array($_SESSION["userSession"], $searchQuery));
+        if ($res->rowCount()){
+            $isInserted = true;
+        }
+    }
+    if (!empty($_POST["overall-evaluation"])){
+        $overallEvaluation = filter_var($_POST["overall-evaluation"],  FILTER_SANITIZE_STRING);
+        $taxes = filter_var($_POST["review-taxes"],  FILTER_SANITIZE_NUMBER_FLOAT);
+        $taxesDescription = filter_var($_POST["review-taxes-text"], FILTER_SANITIZE_STRING);
+        $environment = filter_var($_POST["review-environment"],  FILTER_SANITIZE_NUMBER_FLOAT);
+        $environmentDescription = filter_var($_POST["review-environment-text"], FILTER_SANITIZE_STRING);
+        $col = filter_var($_POST["review-COL"],  FILTER_SANITIZE_NUMBER_FLOAT);
+        $colDescription = filter_var($_POST["review-COL-text"], FILTER_SANITIZE_STRING);
+        $security = filter_var($_POST["review-security"],  FILTER_SANITIZE_NUMBER_FLOAT);
+        $securityDescription = filter_var($_POST["review-security-text"], FILTER_SANITIZE_STRING);
+        $sql = "
+            INSERT INTO Reviews(
+                                reviewCityID,
+                                reviewUserID,
+                                reviewTaxes,
+                                reviewTaxesDescription,
+                                reviewCOL,
+                                reviewCOLDescription,
+                                reviewEnvironment,
+                                reviewEnvironmentDescription,
+                                reviewSecurity,
+                                reviewSecurityDescription,
+                                reviewOverallEvaluation
+                                ) VALUES(
+                                         ?,
+                                         (
+                                            SELECT userID 
+                                            FROM Users
+                                            WHERE userUsername = ?
+                                             ),
+                                         ?,
+                                         ?,
+                                         ?,
+                                         ?,
+                                         ?,
+                                         ?,
+                                         ?,
+                                         ?,
+                                         ?
+                                );
+            ";
+        $res = $db->prepare($sql);
+        //    $res->bindParam(1, $searchQuery, PDO::PARAM_INT);
+        //    $res->bindParam(2, $taxes, PDO::PARAM_INT);
+        //    $res->bindParam(3, $toGenerate, PDO::PARAM_INT);
+        $res->execute(array(
+            $searchQuery,
+            $_SESSION["userSession"],
+            $taxes,
+            $taxesDescription,
+            $col,
+            $colDescription,
+            $environment,
+            $environmentDescription,
+            $security,
+            $securityDescription,
+            $overallEvaluation
+        ));
+        if ($res->rowCount()){
+            $isInserted = true;
+        }
+    }
+    $db = null;
 ?>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Settings - Urbaneye</title>
+    <title><?php if($isInserted){echo 'Success';} else {echo 'Utter failure';} ?> - Urbaneye</title>
     <link rel="stylesheet" href="../static/css/output.css">
     <link rel="stylesheet" href="../static/css/custom.css">
     <script src="../static/js/main.js"></script>
@@ -36,19 +107,46 @@
                 $('#email').val('');
                 $('#password-su').val('');
                 $('#username-su').val('');
+            } else if($('#review-inserter').is(':visible')){
+                $("#")
             }
         });
         $(document).ready(function() {
+            let generated = 0, lastGeneration = new Date().getTime();
+            const data = <?php echo json_encode($results); ?>, toGenerate = <?php if ($type == "city"){echo 1;}else{ echo 28;}?>;
             $('#live-search').val('');
             isLogged();
+            login();
+            signup();
             liveSearch(5);
-            $('#profile-drop, #user-profile, #login-nav, #login-form, #signup-form').click(function (evt) {
+            cityWildcardGen(generated, data.slice(generated, toGenerate));
+            generated += toGenerate;
+            if (generated < data.length) {
+                $(window).on("scroll", () => {
+                    console.log(generated);
+                    let t = new Date().getTime();
+                    let scrollHeight = $(document).height();
+                    let scrollPos = Math.floor($(window).height() + $(window).scrollTop());
+                    if (scrollHeight - 300 < scrollPos) {
+                        if (t > lastGeneration + 650) {
+                            lastGeneration = t;
+                            $('#cards-loader').hide("fast");
+                            cityWildcardGen(generated, toGenerate, data.slice(generated, generated+toGenerate));
+                            generated += toGenerate;
+                        } else {
+                            $('#cards-loader').show("fast");
+                        }
+                    }
+                });
+            }
+            $('#profile-drop, #user-profile, #login-nav, #login-form, #signup-form, #review-form').click(function (evt) {
                 evt.stopPropagation();
             });
         });
     </script>
 </head>
 <body>
+
 <div class="w-full text-gray-200">
     <div class="flex flex-col max-w-screen-2xl px-4 mx-auto lg:items-center lg:justify-between lg:flex-row md:px-6 lg:px-8">
         <div class="p-4 flex flex-row items-center justify-between">
@@ -141,6 +239,23 @@
                     <a href="#" class="relative -top-2/4 flex justify-center uppercase text-lightText text-sm not-sr-only"
                     >Compare</a>
                 </div>
+                <div id="login-nav" style="display: none;">
+                    <div class="invisible lg:visible buttonContainer w-28">
+                        <svg viewBox="0 0 100 30" xmlns="http://www.w3.org/2000/svg">
+                            <rect class="buttRect" height="30" width="100"></rect>
+                        </svg>
+                        <a class="relative -top-2/4 flex justify-center uppercase text-lightText text-sm not-sr-only cursor-pointer" onclick="$('#login').show('fast')">Login</a>
+                    </div>
+                    <div class="visible lg:invisible">
+                        <button class="focus:outline-none absolute right-5 -top-2/4 md:-top-24 md:right-16" onclick="$('#login').show('fast')">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" stroke-width="1.5" stroke="#F3EFF5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                <path d="M14 8v-2a2 2 0 0 0 -2 -2h-7a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2 -2v-2" />
+                                <path d="M20 12h-13l3 -3m0 6l-3 -3" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
                 <button id="user-profile" class="visible focus:outline-none absolute right-5 lg:relative lg:right-auto lg:top-auto md:top-7 md:right-16" onclick="userDrop()" style="display: none">
                     <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" stroke-width="1.5" stroke="#F3EFF5" fill="none" stroke-linecap="round" stroke-linejoin="round">
                         <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
@@ -216,10 +331,8 @@
                                 </svg>
                             </div>
                             <div class="pl-3">
-                                    <p class="text-sm font-medium leading-none">
-                                        Favourites
-                                    </p>
-                                    <p class="text-xs text-gray-300">The cities you love</p>
+                                    Favourites
+                                <p class="text-xs text-gray-300">The cities you love</p>
                             </div>
                         </a>
                     </div>
@@ -268,17 +381,24 @@
                     </svg>
                     <a
                         class="active:bg-red-200 px-4 py-2 mt-2 text-md text-lightText focus:outline-none focus:shadow-outline"
-                        href="favourites.html"
+                        href="#"
                     >Favourites</a>
                 </div>
             </div>
         </div>
     </nav>
 </div>
-<div>
 
-
+<div class="grid justify-center">
+        <div class="bg-teal-100 border-t-4 border-teal-500 rounded-b text-teal-900 px-4 py-3 shadow-md" role="alert" style="display:<?php if($isInserted){echo'inherit;';} else {echo 'none;';} ?>">
+            <div class="flex">
+                <div class="py-1"><svg class="fill-current h-6 w-6 text-teal-500 mr-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M2.93 17.07A10 10 0 1 1 17.07 2.93 10 10 0 0 1 2.93 17.07zm12.73-1.41A8 8 0 1 0 4.34 4.34a8 8 0 0 0 11.32 11.32zM9 11V9h2v6H9v-4zm0-6h2v2H9V5z"/></svg></div>
+                <div>
+                    <p class="font-bold">You successfully <?php if (empty($_POST["add-favourite"])) { echo 'made a review'; } else { echo 'added a favourite';}?>!</p>
+                    <p class="text-sm">Thank you for doing this stuff</p>
+                </div>
+            </div>
+        </div>
 </div>
-<div id="login-nav"></div>
 </body>
 </html>

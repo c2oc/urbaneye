@@ -24,7 +24,7 @@
         $reviewsDump = null;
     } else {
         $sql = '
-            SELECT cityID, cityName, cityImage, countryName, AVG(reviewTaxes) as overallTaxes, AVG(reviewEnvironment) as overallEnvironment, AVG(reviewCOL) AS overallCOL, AVG(reviewSecurity) AS overallSecurity, (AVG(reviewTaxes)+AVG(reviewEnvironment)+AVG(reviewCOL)+AVG(reviewSecurity))/4 as overallScore
+            SELECT cityID, cityName, cityImage, countryName, AVG(reviewTaxes) as taxes, AVG(reviewEnvironment) as environment, AVG(reviewCOL) AS col, AVG(reviewSecurity) AS security, (AVG(reviewTaxes)+AVG(reviewEnvironment)+AVG(reviewCOL)+AVG(reviewSecurity))/4 as overallScore
             FROM Cities
             JOIN Countries ON cityCountryID = countryID
             LEFT JOIN Reviews ON cityID = reviewCityID
@@ -39,7 +39,7 @@
         $cities = $res->fetchAll(PDO::FETCH_ASSOC);
         $citiesDump = array();
         foreach ($cities as $city) {
-            $citiesDump[] = [$city["cityName"], $city["countryName"], [isNull($city["overallTaxes"]), isNull($city["overallEnvironment"]), isNull($city["overallSecurity"]), isNull($city["overallCOL"]), isNull($city["overallScore"])], $city["cityImage"], $city["cityID"]];
+            $citiesDump[] = [$city["cityName"], $city["countryName"], [isNull($city["taxes"]), isNull($city["environment"]), isNull($city["security"]), isNull($city["col"]), isNull($city["overallScore"])], $city["cityImage"], $city["cityID"]];
         }
         echo json_encode(array('cities' => $citiesDump));
         $citiesDump = null;
