@@ -14,7 +14,7 @@
                 JOIN Users on reviewUserID = userID
                 GROUP BY reviewCreated_at
                 ORDER BY reviewCreated_at DESC
-                LIMIT 5
+                LIMIT 4
                 ";
         $reviewsDump = array();
         foreach ($db->query($sql) as $review){
