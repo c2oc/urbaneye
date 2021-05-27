@@ -1,5 +1,5 @@
 <?php
-
+    session_start();
     if (empty($_GET["q"])){
         header("location:../index.html");
     }
