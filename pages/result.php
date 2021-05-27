@@ -635,11 +635,12 @@
         <label>
             <input name="cityID" value="<?php echo $searchQuery; ?>"  style="display: none" class="text-sm sm:text-base pl-10 pr-4 rounded-lg bg-custom-eerie w-full py-2 focus:outline-none" />
         </label>
-        <button type="submit" class="flex items-center justify-center focus:outline-none text-custom-ghost text-sm sm:text-base bg-custom-cayola hover:bg-custom-evil-cayola rounded py-2 w-full transition duration-150 ease-in <?php if ($type != 'city' && !isset($_SESSION['userSession'])){echo 'opacity-50 cursor-not-allowed';} ?>" onclick="$('#review-inserter').show('fast')">
+        <button type="submit" class="flex items-center justify-center focus:outline-none text-custom-ghost text-sm sm:text-base bg-custom-cayola hover:bg-custom-evil-cayola rounded py-2 w-full transition duration-150 ease-in <?php if ($type != 'city' || !isset($_SESSION['userSession'])){echo 'opacity-50 cursor-not-allowed';} ?>">
             <?php if ($isFavourite) {echo 'Remove from Favourites';}else{echo 'Add to Favourites';}?>
         </button>
     </form>
-    <button type="submit" class="flex items-center justify-center focus:outline-none text-custom-ghost text-sm sm:text-base bg-custom-cayola hover:bg-custom-evil-cayola rounded py-2 w-full transition duration-150 ease-in <?php if ($type != 'city' && !isset($_SESSION['userSession'])){echo 'opacity-50 cursor-not-allowed';} ?>" onclick="$('#review-inserter').show('fast')">
+
+    <button type="submit" class="flex items-center justify-center focus:outline-none text-custom-ghost text-sm sm:text-base bg-custom-cayola hover:bg-custom-evil-cayola rounded py-2 w-full transition duration-150 ease-in <?php if ($type != 'city' || !isset($_SESSION['userSession'])){echo 'opacity-50 cursor-not-allowed';} ?>" onclick="$('#review-inserter').show('fast')">
     Insert review
     </button>
 </div>
