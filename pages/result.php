@@ -8,6 +8,7 @@
     $type = $_GET["t"];
     $searchQuery = $_GET["q"];
     $isInserted = false;
+    $isFavourite = false;
     $results = array();
     if ($type == "city"){
         $sql = "
@@ -21,7 +22,17 @@
         $res->execute(array($searchQuery));
         $r = $res->fetch(PDO::FETCH_ASSOC);
         $results[] = [$r["cityName"], $r["countryName"], [isNull($r["taxes"]), isNull($r["environment"]), isNull($r["security"]), isNull($r["col"]), isNull($r["overallScore"])], $r["cityImage"], $r["cityID"]];
-
+        $res = $db->prepare($sql);
+        $sql = "
+            SELECT *
+            FROM Favourites
+            WHERE favouriteCityID = ? AND favouriteUserID = (SELECT userID FROM Users WHERE userUsername = ?)
+        ";
+        $res = $db->prepare($sql);
+        $res->execute(array($searchQuery, $_SESSION["userSession"]));
+        if ($res->rowCount()){
+            $isFavourite = true;
+        }
     } else {
         $sql = "
             SELECT cityID, cityImage, cityName, countryName, AVG(reviewTaxes) as taxes, AVG(reviewEnvironment) as environment, AVG(reviewCOL) AS col, AVG(reviewSecurity) AS security, (AVG(reviewTaxes)+AVG(reviewEnvironment)+AVG(reviewCOL)+AVG(reviewSecurity))/4 as overallScore
@@ -617,24 +628,15 @@
             </a>
         </div>
     </div>
-    <div class="bg-teal-100 border-t-4 border-teal-500 rounded-b text-teal-900 px-4 py-3 shadow-md" role="alert" style="display:<?php if($isInserted){echo'inherit;';} else {echo 'none;';} ?>">
-        <div class="flex">
-            <div class="py-1"><svg class="fill-current h-6 w-6 text-teal-500 mr-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M2.93 17.07A10 10 0 1 1 17.07 2.93 10 10 0 0 1 2.93 17.07zm12.73-1.41A8 8 0 1 0 4.34 4.34a8 8 0 0 0 11.32 11.32zM9 11V9h2v6H9v-4zm0-6h2v2H9V5z"/></svg></div>
-            <div>
-                <p class="font-bold">You successfully <?php if (empty($_POST["add-favourite"])) { echo 'made a review'; } else { echo 'added a favourite';}?>!</p>
-                <p class="text-sm">Thank you for doing this stuff</p>
-            </div>
-        </div>
-    </div>
     <form action="added.php" method="post">
         <label>
-            <input name="add-favourite" value="lol" style="display: none"/>
+            <input name="<?php if ($isFavourite) {echo 'remove-favourite';}else{echo 'add-favourite';}?>" value="lol" style="display: none"/>
         </label>
         <label>
-            <input name="cityID" value="<?php echo $searchQuery; ?>" class="text-sm sm:text-base pl-10 pr-4 rounded-lg bg-custom-eerie w-full py-2 focus:outline-none" />
+            <input name="cityID" value="<?php echo $searchQuery; ?>"  style="display: none" class="text-sm sm:text-base pl-10 pr-4 rounded-lg bg-custom-eerie w-full py-2 focus:outline-none" />
         </label>
         <button type="submit" class="flex items-center justify-center focus:outline-none text-custom-ghost text-sm sm:text-base bg-custom-cayola hover:bg-custom-evil-cayola rounded py-2 w-full transition duration-150 ease-in <?php if ($type != 'city' && !isset($_SESSION['userSession'])){echo 'opacity-50 cursor-not-allowed';} ?>" onclick="$('#review-inserter').show('fast')">
-            Add to favourites
+            <?php if ($isFavourite) {echo 'Remove from Favourites';}else{echo 'Add to Favourites';}?>
         </button>
     </form>
     <button type="submit" class="flex items-center justify-center focus:outline-none text-custom-ghost text-sm sm:text-base bg-custom-cayola hover:bg-custom-evil-cayola rounded py-2 w-full transition duration-150 ease-in <?php if ($type != 'city' && !isset($_SESSION['userSession'])){echo 'opacity-50 cursor-not-allowed';} ?>" onclick="$('#review-inserter').show('fast')">
