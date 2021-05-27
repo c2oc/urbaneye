@@ -6,11 +6,14 @@ function isLogged() {
 
         success: function(response) {
             if (JSON.parse(response).usersession) {
-                loggedIn();
-                return 1;
+                document.querySelector("#login-nav").style.display = "none";
+                document.querySelector("#user-profile").style.display = "inherit";
+            } else {
+                document.querySelector("#login-nav").style.display = "inline-block";
+                if (document.title.includes("Favourites")) {
+                    window.location.href = "../index.html";
+                }
             }
-            document.querySelector("#login-nav").style.display = "inline-block";
-            return 0;
         }
     });
 }

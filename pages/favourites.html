@@ -8,10 +8,7 @@
     <script src="../static/js/main.js"></script>
     <script src="../static/js/jquery-3.6.0-min.js"></script>
     <script>
-        if (!isLogged()){
-            window.location.href = "../index.html";
-        }
-        $(document, '.modal-overlay').click(function() {
+       $(document, '.modal-overlay').click(function() {
             if ($('#profile-drop').is(':visible')) {
                 $('#profile-drop').hide();
             }
