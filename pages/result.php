@@ -79,7 +79,7 @@
                 $('#password-su').val('');
                 $('#username-su').val('');
             } else if($('#review-inserter').is(':visible')){
-                $("#")
+                $("#review-inserter").hide();
             }
         });
         $(document).ready(function() {

@@ -321,6 +321,7 @@ function reviewWildcardGen(data) {
         clone.querySelector("#review-country").innerHTML = data[i][3];
         clone.querySelector("#review-city").innerHTML = data[i][4];
         clone.querySelector("#review-score").innerHTML = Math.floor(data[i][5]).toString();
+        clone.querySelector("#review-score").replace(0, scoreColour(Math.floor(data[i][5])));
         clone.querySelector("#review-text").innerHTML = data[i][6];
         clone.style.display = "inherit";
         document.querySelector("#review-section").appendChild(clone);
