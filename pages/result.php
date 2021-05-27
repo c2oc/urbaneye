@@ -640,7 +640,7 @@
         </button>
     </form>
 
-    <button type="submit" class="flex items-center justify-center focus:outline-none text-custom-ghost text-sm sm:text-base bg-custom-cayola hover:bg-custom-evil-cayola rounded py-2 w-full transition duration-150 ease-in <?php if ($type != 'city' || !isset($_SESSION['userSession'])){echo 'opacity-50 cursor-not-allowed'; ?>" onclick="$('#review-inserter').show('fast')" <?php echo 'disabled';} if ($type != 'city' || !isset($_SESSION['userSession'])) {echo 'dispaly:none;';}?>>
+    <button type="submit" class="flex items-center justify-center focus:outline-none text-custom-ghost text-sm sm:text-base bg-custom-cayola hover:bg-custom-evil-cayola rounded py-2 w-full transition duration-150 ease-in <?php if ($type != 'city' || !isset($_SESSION['userSession'])){echo 'opacity-50 cursor-not-allowed'; ?>" onclick="$('#review-inserter').show('fast')" <?php echo 'disabled style="display:none;"';}?>>
     Insert review
     </button>
 </div>
