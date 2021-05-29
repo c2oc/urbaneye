@@ -189,11 +189,11 @@ function destroyChildren(){
 function scoreColour (grade, isLine=false) {
     if (!isLine) {
         if (grade >= 70) {
-            return "bg-green-500";
+            return "green-500";
         } else if (grade < 70 && grade > 50) {
-            return "bg-custom-warning";
+            return "custom-warning";
         } else {
-            return "bg-custom-red";
+            return "custom-red";
         }
     } else {
         if (grade >= 70) {
@@ -253,16 +253,16 @@ function cityWildcardGen(n_gen, data) {
         clone.querySelector("#overall-score-line").setAttribute('id', 'overall-score-line-' + (n_gen+i));
         clone.querySelector("#overall-score-line-" + (n_gen+i)).style.stroke = scoreColour(Math.floor(overallScores[4]), true);
 
-        clone.querySelector("#overall-taxes-" + (n_gen+i)).classList.replace(clone.querySelector("#overall-taxes-" + (n_gen+i)).classList.item(2), scoreColour(overallScores[0]));
+        clone.querySelector("#overall-taxes-" + (n_gen+i)).classList.replace(clone.querySelector("#overall-taxes-" + (n_gen+i)).classList.item(2), "bg-" + scoreColour(overallScores[0]));
         clone.querySelector("#overall-taxes-" + (n_gen+i)).style.width = overallScores[0] + '%';
 
-        clone.querySelector("#overall-environment-" + (n_gen+i)).classList.replace(clone.querySelector("#overall-environment-" + (n_gen+i)).classList.item(2), scoreColour(overallScores[1]));
+        clone.querySelector("#overall-environment-" + (n_gen+i)).classList.replace(clone.querySelector("#overall-environment-" + (n_gen+i)).classList.item(2), "bg-" + scoreColour(overallScores[1]));
         clone.querySelector("#overall-environment-" + (n_gen+i)).style.width = overallScores[1] + '%';
 
-        clone.querySelector("#overall-security-" + (n_gen+i)).classList.replace(clone.querySelector("#overall-security-" + (n_gen+i)).classList.item(2), scoreColour(overallScores[2]));
+        clone.querySelector("#overall-security-" + (n_gen+i)).classList.replace(clone.querySelector("#overall-security-" + (n_gen+i)).classList.item(2), "bg-" + scoreColour(overallScores[2]));
         clone.querySelector("#overall-security-" + (n_gen+i)).style.width = overallScores[2] + '%';
 
-        clone.querySelector("#overall-col-" + (n_gen+i)).classList.replace(clone.querySelector("#overall-col-" + (n_gen+i)).classList.item(2), scoreColour(overallScores[3]));
+        clone.querySelector("#overall-col-" + (n_gen+i)).classList.replace(clone.querySelector("#overall-col-" + (n_gen+i)).classList.item(2), "bg-" + scoreColour(overallScores[3]));
         clone.querySelector("#overall-col-" + (n_gen+i)).style.width = overallScores[3] + '%';
 
 
@@ -321,7 +321,7 @@ function reviewWildcardGen(data) {
         clone.querySelector("#review-country").innerHTML = data[i][3];
         clone.querySelector("#review-city").innerHTML = data[i][4];
         clone.querySelector("#review-score").innerHTML = Math.floor(data[i][5]).toString();
-        clone.querySelector("#review-score").classList.replace(0, scoreColour(Math.floor(data[i][5])));
+        clone.querySelector("#review-score").classList.add("text-" + scoreColour(Math.floor(data[i][5])));
         clone.querySelector("#review-text").innerHTML = data[i][6];
         clone.style.display = "inherit";
         document.querySelector("#review-section").appendChild(clone);

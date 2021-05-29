@@ -110,7 +110,7 @@
                     }
                 });
             }
-            $('#profile-drop, #user-profile, #login-nav, #login-form, #signup-form, #review-form').click(function (evt) {
+            $('#profile-drop, #user-profile, #login-nav, #login-form, #signup-form, #review-form, #review-inserter').click(function (evt) {
                 evt.stopPropagation();
             });
         });

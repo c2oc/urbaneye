@@ -9,7 +9,10 @@
         $toGenerate = $_POST["toGenerate"];
         $db = db_connection();
         $sql = "
-        SELECT cityID, cityImage, cityName, countryName, AVG(reviewTaxes) as taxes, AVG(reviewEnvironment) as environment, AVG(reviewCOL) AS col, AVG(reviewSecurity) AS security, (AVG(reviewTaxes)+AVG(reviewEnvironment)+AVG(reviewCOL)+AVG(reviewSecurity))/4 as overallScore
+        SELECT cityID, cityImage, cityName, countryName, AVG(reviewTaxes) as taxes, 
+               AVG(reviewEnvironment) as environment, AVG(reviewCOL) AS col,
+               AVG(reviewSecurity) AS security,
+               (AVG(reviewTaxes)+AVG(reviewEnvironment)+AVG(reviewCOL)+AVG(reviewSecurity))/4 as overallScore
         FROM Countries
         JOIN Cities ON countryID = cityCountryID
         LEFT JOIN Reviews ON reviewCityID = cityID
