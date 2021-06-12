@@ -35,7 +35,7 @@ The things you can do with Urbaneye:
 </p>
 
 <p align="center">
-  <img src = "https://i.imgur.com/E9eovNr.png" width=700>
+  <img src = "https://i.imgur.com/jLMGMw5.png" width=700>
 </p>
 
 ## Build Process
