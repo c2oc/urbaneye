@@ -42,7 +42,7 @@ The things you can do with Urbaneye:
 
 **NPM is required only if you wish to build the CSS.**
 - Build the CSS with `npx tailwindcss-cli@latest build static/css/tailwind.css -o static/css/output.css`;
-- In API, modify `api/dbConn.php` as you need;
+- In API, modify [dbConn.php](https://github.com/c2oc/urbaneye/blob/master/api/dbConn.php) as you need;
 - Check out the ER diagram in the [docs/Database](https://github.com/c2oc/urbaneye/tree/master/docs/Database) folder. It also has an export of all the queries;
 - As of now, the data dump of the countries and cities is not provided;
 
