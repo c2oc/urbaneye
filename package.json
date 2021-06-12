@@ -1,0 +1,19 @@
+{
+  "name": "urbaneye",
+  "version": "0.0.1",
+  "description": "Where my last hope lies",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@tailwindcss/aspect-ratio": "^0.2.0",
+    "autoprefixer": "^10.2.5",
+    "tailwindcss": "^2.1.2"
+  },
+  "devDependencies": {
+    "tailwindcss-truncate-multiline": "^1.0.3"
+  }
+}
