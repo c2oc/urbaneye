@@ -1,3 +1,46 @@
 @import "tailwindcss/base";
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
+
+@layer base {
+    @font-face {
+        font-family: 'Open Sans';
+        font-style: normal;
+        font-weight: 400;
+        src: local(''),
+        url('fonts/open-sans-v18-vietnamese_latin-ext_latin_greek-ext_greek_cyrillic-ext_cyrillic-regular.woff2')
+        format('woff2'),
+        url('fonts/open-sans-v18-vietnamese_latin-ext_latin_greek-ext_greek_cyrillic-ext_cyrillic-regular.woff')
+        format('woff'); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
+    }
+    @font-face {
+        font-family: 'Baloo Bhai 2';
+        font-style: normal;
+        font-weight: 600;
+        src: local(''),
+        url('fonts/baloo-bhai-2-v1-vietnamese_latin-ext_latin_gujarati-600.woff2')
+        format('woff2'),
+        url('fonts/baloo-bhai-2-v1-vietnamese_latin-ext_latin_gujarati-600.woff')
+        format('woff'); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
+    }
+    body{
+        font-family: 'Open Sans', 'Baloo Bhai 2', cursive;
+        @apply bg-custom-eerie text-lightText;
+    }
+    h1 {
+        @apply text-4xl md:text-8xl;
+        font-family: "Baloo Bhai 2", cursive;
+    }
+    h2 {
+        @apply text-2xl md:text-4xl;
+    }
+    h3 {
+        @apply text-lg md:text-2xl;
+    }
+    h4{
+        @apply text-lg;
+    }
+    b{
+        font-family: "Baloo Bhai 2", cursive;
+    }
+}

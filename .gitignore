@@ -124,3 +124,4 @@ api/dbConn.php
 README.md
 /assets/img/cities/*
 /assets/img/users/*
+/static/css/tailwindcss.css
